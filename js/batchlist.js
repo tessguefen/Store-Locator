@@ -57,6 +57,34 @@ StoreLocator_Batchlist.prototype.onCreateRootColumnList = function() {
 	return columnlist;
 }
 
+StoreLocator_Batchlist.prototype.onCreate = function() {
+	var self = this;
+	var i, i_len;
+	var record;
+	record = new Object();
+	record.id = 0;
+	record.active = 0;
+	record.code = '';
+	record.name = '';
+	record.addr1 = '';
+	record.addr2 = '';
+	record.city = '';
+	record.state = '';
+	record.zip = '';
+	record.cntry = '';
+	record.lat = '';
+	record.lng = '';
+	for ( i = 0, i_len = self.additional_fields_length; i < i_len; i++ ) {
+		var code = 'AdditionalFields_' + self.additional_fields[ i ].code;
+		record[code] = '';
+	}
+	return record;
+}
+
+StoreLocator_Batchlist.prototype.onInsert = function( item, callback, delegator ) {
+	StoreLocator_Batchlist_Function( 'Location_Insert', item.record.mmbatchlist_fieldlist, callback, delegator );
+}
+
 StoreLocator_Batchlist.prototype.Settings = function() {
 	var self = this;
 	var dialog;

@@ -13,6 +13,7 @@
 	JSON Functions
 		JSON_StoreLocator_Load_Query( module var )
 		JSON_AdditionalFields_Load_Query( module var )
+		JSON_Location_Insert( module var )
 </MvCOMMENT>
 
 <MvFUNCTION NAME = "Generate_Location_Code" STANDARDOUTPUTLEVEL = "">
@@ -252,4 +253,23 @@
 		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlFields">
 	}
 
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_Location_Insert" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.location:code"		VALUE = "{ g.code }">
+	<MvASSIGN NAME = "l.location:name"		VALUE = "{ g.name }">
+	<MvASSIGN NAME = "l.location:addr1"		VALUE = "{ g.addr1 }">
+	<MvASSIGN NAME = "l.location:addr2"		VALUE = "{ g.addr2 }">
+	<MvASSIGN NAME = "l.location:city"		VALUE = "{ g.city }">
+	<MvASSIGN NAME = "l.location:state"		VALUE = "{ g.state }">
+	<MvASSIGN NAME = "l.location:zip"		VALUE = "{ g.zip }">
+	<MvASSIGN NAME = "l.location:cntry"		VALUE = "{ g.cntry }">
+	<MvASSIGN NAME = "l.location:lat"		VALUE = "{ g.lat }">
+	<MvASSIGN NAME = "l.location:lng"		VALUE = "{ g.lng }">
+	<MvASSIGN NAME = "l.location:active"	VALUE = "{ g.active }">
+
+	<MvIF EXPR = "{ NOT Location_Insert( l.location ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">
 </MvFUNCTION>

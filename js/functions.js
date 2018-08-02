@@ -17,3 +17,12 @@ function StoreLocator_Load_Query( filter, sort, offset, count, callback, delegat
 								'&Count=' + encodeURIComponent( count ),
 								delegator );
 }
+function StoreLocator_Batchlist_Function( function_name, fieldlist, callback, delegator ) { 
+	return AJAX_Call_Module_FieldList( callback,
+									   'admin',
+									   'TGStoreLocator',
+									   function_name,
+									   '',
+									   fieldlist,
+									   delegator );
+}

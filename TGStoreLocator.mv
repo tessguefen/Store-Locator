@@ -228,6 +228,7 @@
 	</MvIF>
 	<MvIF EXPR = "{ g.Module_Function EQ 'StoreLocator_Load_Query'	}"><MvFUNCTIONRETURN VALUE = "{ JSON_StoreLocator_Load_Query( l.module ) }"></MvIF>
 	<MvIF EXPR = "{ g.Module_Function EQ 'Load_Additional_Fields'	}"><MvFUNCTIONRETURN VALUE = "{ JSON_Load_Additional_Fields( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'Location_Insert'			}"><MvFUNCTIONRETURN VALUE = "{ JSON_Location_Insert( l.module ) }"></MvIF>
 </MvFUNCTION>
 
 <MvCOMMENT>
