@@ -1,0 +1,255 @@
+<MvCOMMENT>
+	Helper/ Misc Functions
+		Generate_Location_Code()
+		Geocode_Location( location var )
+
+	Location Functions
+		Location_Read( location var )
+		Location_Insert( location var )
+		Location_Insert_Lowlevel( location var )
+		Location_Load_ID( id, location var )
+		Location_Load_Code( code, location var )
+
+	JSON Functions
+		JSON_StoreLocator_Load_Query( module var )
+		JSON_AdditionalFields_Load_Query( module var )
+</MvCOMMENT>
+
+<MvFUNCTION NAME = "Generate_Location_Code" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.code" VALUE = "{ [ g.Module_Library_Utilities ].AlphaNumericOnly( crypto_base64_encode( crypto_rand_bytes( 7 ) ) ) }">
+	<MvIF EXPR = "{ Location_Load_Code( l.code, l.location ) }">
+		<MvFUNCTIONRETURN VALUE = "{ Generate_Location_Code() }">
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "{ l.code }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Geocode_Location" PARAMETERS = "location var" STANDARDOUTPUTLEVEL = "">
+	<MvCOMMENT>
+		Ping Google
+	</MvCOMMENT>
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Location_Read" PARAMETERS = "location var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.location:id"		VALUE = "{ TGSL_Locations.d.id }">
+	<MvASSIGN NAME = "l.location:code"		VALUE = "{ TGSL_Locations.d.code }">
+	<MvASSIGN NAME = "l.location:name"		VALUE = "{ TGSL_Locations.d.name }">
+	<MvASSIGN NAME = "l.location:addr1"		VALUE = "{ TGSL_Locations.d.addr1 }">
+	<MvASSIGN NAME = "l.location:addr2"		VALUE = "{ TGSL_Locations.d.addr2 }">
+	<MvASSIGN NAME = "l.location:city"		VALUE = "{ TGSL_Locations.d.city }">
+	<MvASSIGN NAME = "l.location:state"		VALUE = "{ TGSL_Locations.d.state }">
+	<MvASSIGN NAME = "l.location:zip"		VALUE = "{ TGSL_Locations.d.zip }">
+	<MvASSIGN NAME = "l.location:cntry"		VALUE = "{ TGSL_Locations.d.cntry }">
+	<MvASSIGN NAME = "l.location:lat"		VALUE = "{ TGSL_Locations.d.lat }">
+	<MvASSIGN NAME = "l.location:lng"		VALUE = "{ TGSL_Locations.d.lng }">
+	<MvASSIGN NAME = "l.location:active"	VALUE = "{ TGSL_Locations.d.active }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Location_Insert" PARAMETERS = "location var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.location:code"		VALUE = "{ trim( l.location:code ) }">
+	<MvASSIGN NAME = "l.location:name"		VALUE = "{ trim( l.location:name ) }">
+	<MvASSIGN NAME = "l.location:addr1"		VALUE = "{ trim( l.location:addr1 ) }">
+	<MvASSIGN NAME = "l.location:addr2"		VALUE = "{ trim( l.location:addr2 ) }">
+	<MvASSIGN NAME = "l.location:city"		VALUE = "{ trim( l.location:city ) }">
+	<MvASSIGN NAME = "l.location:state"		VALUE = "{ trim( l.location:state ) }">
+	<MvASSIGN NAME = "l.location:zip"		VALUE = "{ trim( l.location:zip ) }">
+	<MvASSIGN NAME = "l.location:cntry"		VALUE = "{ trim( l.location:cntry ) }">
+	<MvASSIGN NAME = "l.location:lat"		VALUE = "{ trim( l.location:lat ) }">
+	<MvASSIGN NAME = "l.location:lng"		VALUE = "{ trim( l.location:lng ) }">
+	<MvASSIGN NAME = "l.location:active"	VALUE = "{ int( l.location:active ) }">
+
+	<MvIF EXPR = "{ ISNULL l.location:code }">
+		<MvASSIGN NAME = "l.location:code" VALUE = "{ Generate_Location_Code() }">
+	<MvELSEIF EXPR = "{ Location_Load_Code( l.location:code, l.existing_location ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', 'Code already exists.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.location:name }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'name', 'Name is required.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.location:addr1 }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'addr1', 'Address 1 is required.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.location:zip }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'zip', 'Zip/Postal Code is required.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.location:cntry }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'cntry', 'Country is required.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ( ISNULL l.location:lat ) OR ( ISNULL l.location:lng ) }">
+		<MvIF EXPR = "{ NOT Geocode_Location( l.location ) }">
+			<MvFUNCTIONRETURN VALUE = 0>
+		</MvIF>
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "{ Location_Insert_Lowlevel( l.location ) }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Location_Insert_Lowlevel" PARAMETERS = "location var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.location:id" VALUE = "{ [ g.Module_Library_DB ].StoreKey_Generate( 'TGSL_Locations' ) }">
+
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'INSERT INTO ' $ g.Store_Table_Prefix $ 'TGSL_Locations
+						  ( id, code, name, addr1, addr2, city, state, zip, cntry, lat, lng, active )
+						  VALUES
+						  ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )' }"
+			 FIELDS	= "l.location:id, l.location:code, l.location:name, l.location:addr1, l.location:addr2, l.location:city, l.location:state, l.location:zip, l.location:cntry, l.location:lat, l.location:lng, l.location:active">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0005', 'Could not insert Location.' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Location_Load_ID" PARAMETERS = "id, location var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvOPENVIEW NAME	= "Merchant"
+				VIEW	= "TGSL_Locations"
+				QUERY	= "{ 'SELECT * FROM ' $ g.Store_Table_Prefix $ 'TGSL_Locations WHERE id = ?' }"
+				FIELDS	= "l.id">
+	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0001', 'Could not load Location.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ TGSL_Locations.d.EOF }">
+		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_Locations">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_DB ].Error_Load_EOF( 'TGSL_Locations-LOCATION-0002' ) }">
+	</MvIF>
+
+	<MvEVAL EXPR = "{ Location_Read( l.location ) }">
+	<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_Locations">
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Location_Load_Code" PARAMETERS = "code, location var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvOPENVIEW NAME	= "Merchant"
+				VIEW	= "TGSL_Locations"
+				QUERY	= "{ 'SELECT * FROM ' $ g.Store_Table_Prefix $ 'TGSL_Locations WHERE ' $ [ g.Module_Library_Native_DBAPI ].DB_Compare_UPPER( 'code' ) $ ' = ' $ [ g.Module_Library_Native_DBAPI ].DB_Compare_UPPER( '?' ) }"
+				FIELDS	= "l.code">
+	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0003', 'Could not load Location.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ TGSL_Locations.d.EOF }">
+		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_Locations">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_DB ].Error_Load_EOF( 'TGSL_Locations-LOCATION-0004' ) }">
+	</MvIF>
+
+	<MvEVAL EXPR = "{ Location_Read( l.location ) }">
+	<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_Locations">
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_StoreLocator_Load_Query" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
+	<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Store_Open() }"><MvFUNCTIONRETURN></MvIF>
+	<MvASSIGN NAME = "g.Filter"			VALUE = "{ trim( g.Filter ) }">
+	<MvASSIGN NAME = "g.Sort"			VALUE = "{ trim( g.Sort ) }">
+	<MvASSIGN NAME = "g.Offset"			VALUE = "{ int( g.Offset ) }">
+	<MvASSIGN NAME = "g.Count"			VALUE = "{ int( g.Count ) }">
+	<MvASSIGN NAME = "l.search_query"	VALUE = "">
+
+	<MvEVAL EXPR = "{ [ g.Module_Library_DB ].SQL_Query_SELECT( l.search_query, 's.*' ) }">
+
+	<MvEVAL EXPR = "{ [ g.Module_Library_DB ].SQL_Query_FROM( l.search_query, g.Store_Table_Prefix $ 'TGSL_Locations', 's' ) }">
+
+	<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Filter( l.search_query, g.Filter,'id:s.id,code:s.code,name:s.name,addr1:s.addr1,addr2:s.addr2,city:s.city,state:s.state,zip:s.zip,cntry:s.cntry,lat:s.lat,lng:s.lng,active:s.active' ) }">
+
+	<MvEVAL EXPR = "{ [ g.Module_Library_DB ].SQL_Query_OrderBy_Fields(l.search_query, g.Sort, 'id:s.id,code:s.code,name:s.name,addr1:s.addr1,addr2:s.addr2,city:s.city,state:s.state,zip:s.zip,cntry:s.cntry,lat:s.lat,lng:s.lng,active:s.active', 's.id' ) }">
+
+	<MvASSIGN NAME = "l.search_sql" VALUE = "{ [ g.Module_Library_DB].SQL_Query_Build( l.search_query, l.search_fields ) }">
+
+	<MvIF EXPR = "{ NOT [ g.Module_Library_DB ].SQL_Query_Count( l.search_query, l.total_count ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error(g.Error_Code, g.Error_Message ) }">
+	<MvELSEIF EXPR = "{ NOT [ g.Module_Library_Native_DBAPI ].DB_OPENVIEW_Range('Merchant', 'TGSL_Locations', l.search_sql, l.search_fields, g.Offset, g.Count) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( 'TGStoreLocator-JSON-0001', g.MvOPENVIEW_Error ) }">
+	</MvIF>
+
+	<MvASSIGN NAME = "l.count" VALUE = 0>
+
+	<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Response_Start() }">
+		{
+			"data":
+				[
+					<MvWHILE EXPR = "{ ( NOT TGSL_Locations.d.EOF ) AND ( ( g.Count EQ 0 ) OR (l.count LT g.Count ) ) }">
+					<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_ArrayElement_Start( l.count )}">
+					"id": <MvEVAL EXPR = "{ int( TGSL_Locations.d.id ) }">,
+					"active" : <MvEVAL EXPR = "{ int( TGSL_Locations.d.active ) }">,
+					"code" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_Locations.d.code ) }">",
+					"name" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_Locations.d.name ) }">",
+					"addr1" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_Locations.d.addr1 ) }">",
+					"addr2" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_Locations.d.addr2 ) }">",
+					"city" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_Locations.d.city ) }">",
+					"state" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_Locations.d.state ) }">",
+					"zip" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_Locations.d.zip ) }">",
+					"cntry" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_Locations.d.cntry ) }">",
+					"lat" : "<MvEVAL EXPR = "{ TGSL_Locations.d.lat }">",
+					"lng" : "<MvEVAL EXPR = "{ TGSL_Locations.d.lng }">"
+					<MvCOMMENT>
+						<MvFOREACH ITERATOR = "l.field" ARRAY = "l.fields" COUNT = "{ Load_Additional_Fields_Product_Review( TGSL_Locations.d.id, l.fields) }">
+							,"AdditionalFields_<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( l.field:code ) }">": "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( l.field:value ) }">"
+						</MvFOREACH>
+					</MvCOMMENT>
+					<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_ArrayElement_End() }">
+					<MvSKIP NAME = "Merchant" VIEW = "TGSL_Locations" ROWS = 1>
+					</MvWHILE>
+				],
+
+			"total_count": <MvEVAL EXPR = "{ int( l.total_count ) }">,
+			"start_offset": <MvEVAL EXPR = "{ int( g.Offset ) }">
+		}
+		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_Locations">
+	}
+
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_Load_Additional_Fields" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
+	<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Store_Open() }"><MvFUNCTIONRETURN></MvIF>	
+	<MvASSIGN NAME = "g.Filter"			VALUE = "{ trim( g.Filter ) }">
+	<MvASSIGN NAME = "g.Sort"			VALUE = "{ int( g.Sort ) }">
+	<MvASSIGN NAME = "g.Offset"			VALUE = "{ int( g.Offset ) }">
+	<MvASSIGN NAME = "g.Count"			VALUE = "{ trim( g.Count ) }">
+	<MvASSIGN NAME = "l.search_query"	VALUE = "">
+
+	<MvEVAL EXPR = "{ [ g.Module_Library_DB ].SQL_Query_SELECT( l.search_query,'s.*' ) }">
+
+	<MvEVAL EXPR = "{ [ g.Module_Library_DB ].SQL_Query_FROM( l.search_query, g.Store_Table_Prefix $ 'TGSL_AddlFields', 's' ) }">
+
+	<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Filter( l.search_query, g.Filter,'id:s.id,code:s.code,name:s.name' ) }">
+
+	<MvEVAL EXPR = "{ [ g.Module_Library_DB ].SQL_Query_OrderBy_Fields(l.search_query, g.Sort, 'id:s.id,code:s.code,name:s.name', 's.id' ) }">
+
+	<MvASSIGN NAME = "l.search_sql" VALUE = "{ [ g.Module_Library_DB].SQL_Query_Build( l.search_query, l.search_fields ) }">
+
+	<MvIF EXPR = "{ NOT [ g.Module_Library_DB ].SQL_Query_Count( l.search_query, l.total_count ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error(g.Error_Code, g.Error_Message ) }">
+	<MvELSEIF EXPR = "{ NOT [ g.Module_Library_Native_DBAPI ].DB_OPENVIEW_Range('Merchant', 'TGSL_AddlFields', l.search_sql, l.search_fields, g.Offset, g.Count) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( 'TGStoreLocator-JSON-0002', g.MvOPENVIEW_Error ) }">
+	</MvIF>
+
+	<MvASSIGN NAME = "l.count" VALUE = 0>
+
+	<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Response_Start() }">
+		{
+			"data":
+				[
+					<MvWHILE EXPR = "{ ( NOT TGSL_AddlFields.d.EOF ) AND ( ( g.Count EQ 0 ) OR (l.count LT g.Count ) ) }">
+					<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_ArrayElement_Start( l.count )}">
+					"id": <MvEVAL EXPR = "{ int( TGSL_AddlFields.d.id ) }">,
+					"code" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_AddlFields.d.code ) }">",
+					"name" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_AddlFields.d.name ) }">"
+					<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_ArrayElement_End() }">
+					<MvSKIP NAME = "Merchant" VIEW = "TGSL_AddlFields" ROWS = 1>
+					</MvWHILE>
+				],
+
+			"total_count": <MvEVAL EXPR = "{ int( l.total_count ) }">,
+			"start_offset": <MvEVAL EXPR = "{ int( g.Offset ) }">
+		}
+		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlFields">
+	}
+
+</MvFUNCTION>
