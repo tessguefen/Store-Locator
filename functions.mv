@@ -5,8 +5,15 @@
 
 	Location Functions
 		Location_Read( location var )
+
 		Location_Insert( location var )
 		Location_Insert_Lowlevel( location var )
+
+		Location_Update( location var )
+		Location_Update_Lowlevel( location var )
+
+		Location_Delete( id )
+
 		Location_Load_ID( id, location var )
 		Location_Load_Code( code, location var )
 
@@ -14,6 +21,9 @@
 		JSON_StoreLocator_Load_Query( module var )
 		JSON_AdditionalFields_Load_Query( module var )
 		JSON_Location_Insert( module var )
+		JSON_Location_Update( module var )
+		JSON_Location_Delete( module var )
+
 </MvCOMMENT>
 
 <MvFUNCTION NAME = "Generate_Location_Code" STANDARDOUTPUTLEVEL = "">
@@ -57,10 +67,12 @@
 	<MvASSIGN NAME = "l.location:cntry"		VALUE = "{ trim( l.location:cntry ) }">
 	<MvASSIGN NAME = "l.location:lat"		VALUE = "{ trim( l.location:lat ) }">
 	<MvASSIGN NAME = "l.location:lng"		VALUE = "{ trim( l.location:lng ) }">
-	<MvASSIGN NAME = "l.location:active"	VALUE = "{ int( l.location:active ) }">
+	<MvASSIGN NAME = "l.location:active"	VALUE = "{ [ g.Module_Admin ].Trim_Boolean( l.location:active ) }">
 
 	<MvIF EXPR = "{ ISNULL l.location:code }">
 		<MvASSIGN NAME = "l.location:code" VALUE = "{ Generate_Location_Code() }">
+	<MvELSEIF EXPR = "{ NOT [ g.Module_Admin ].Validate_Code( l.location:code ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', g.Validation_Message ) }">
 	<MvELSEIF EXPR = "{ Location_Load_Code( l.location:code, l.existing_location ) }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', 'Code already exists.' ) }">
 	</MvIF>
@@ -100,6 +112,91 @@
 			 FIELDS	= "l.location:id, l.location:code, l.location:name, l.location:addr1, l.location:addr2, l.location:city, l.location:state, l.location:zip, l.location:cntry, l.location:lat, l.location:lng, l.location:active">
 	<MvIF EXPR = "{ g.MvQUERY_Error }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0005', 'Could not insert Location.' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Location_Update" PARAMETERS = "location var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.location:code"		VALUE = "{ trim( l.location:code ) }">
+	<MvASSIGN NAME = "l.location:name"		VALUE = "{ trim( l.location:name ) }">
+	<MvASSIGN NAME = "l.location:addr1"		VALUE = "{ trim( l.location:addr1 ) }">
+	<MvASSIGN NAME = "l.location:addr2"		VALUE = "{ trim( l.location:addr2 ) }">
+	<MvASSIGN NAME = "l.location:city"		VALUE = "{ trim( l.location:city ) }">
+	<MvASSIGN NAME = "l.location:state"		VALUE = "{ trim( l.location:state ) }">
+	<MvASSIGN NAME = "l.location:zip"		VALUE = "{ trim( l.location:zip ) }">
+	<MvASSIGN NAME = "l.location:cntry"		VALUE = "{ trim( l.location:cntry ) }">
+	<MvASSIGN NAME = "l.location:lat"		VALUE = "{ trim( l.location:lat ) }">
+	<MvASSIGN NAME = "l.location:lng"		VALUE = "{ trim( l.location:lng ) }">
+	<MvASSIGN NAME = "l.location:active"	VALUE = "{ [ g.Module_Admin ].Trim_Boolean( l.location:active ) }">
+
+	<MvIF EXPR = "{ NOT Location_Load_ID( l.location:id, l.previous_location ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'id', 'Location not found.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.location:code }">
+		<MvASSIGN NAME = "l.location:code" VALUE = "{ Generate_Location_Code() }">
+	<MvELSEIF EXPR = "{ NOT [ g.Module_Admin ].Validate_Code( l.location:code ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', g.Validation_Message ) }">
+	<MvELSEIF EXPR = "{ Location_Load_Code( l.location:code, l.existing_location ) AND ( l.previous_location:code NE l.existing_location:code ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', 'Code already exists.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.location:name }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'name', 'Name is required.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.location:addr1 }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'addr1', 'Address 1 is required.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.location:zip }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'zip', 'Zip/Postal Code is required.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.location:cntry }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'cntry', 'Country is required.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ( ISNULL l.location:lat ) OR ( ISNULL l.location:lng ) }">
+		<MvIF EXPR = "{ NOT Geocode_Location( l.location ) }">
+			<MvFUNCTIONRETURN VALUE = 0>
+		</MvIF>
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "{ Location_Update_Lowlevel( l.location ) }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Location_Update_Lowlevel" PARAMETERS = "location var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'UPDATE ' $ g.Store_Table_Prefix $ 'TGSL_Locations
+						  SET
+							code	= ?,
+							name	= ?,
+							addr1	= ?,
+							addr2	= ?,
+							city	= ?,
+							state	= ?,
+							zip		= ?,
+							cntry	= ?,
+							lat		= ?,
+							lng		= ?,
+							active	= ?
+						  WHERE
+							id		= ?' }"
+			 FIELDS	= "l.location:code, l.location:name, l.location:addr1, l.location:addr2, l.location:city, l.location:state, l.location:zip, l.location:cntry, l.location:lat, l.location:lng, l.location:active, l.location:id">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0006', 'Could not update location.' ) }">
+	</MvIF>
+	
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Location_Delete" PARAMETERS = "id" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'DELETE FROM ' $ g.Store_Table_Prefix $ 'TGSL_Locations WHERE id = ?' }"
+			 FIELDS	= "l.id">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0007', 'Could not delete Location.' ) }">
 	</MvIF>
 
 	<MvFUNCTIONRETURN VALUE = 1>
@@ -269,6 +366,35 @@
 	<MvASSIGN NAME = "l.location:active"	VALUE = "{ g.active }">
 
 	<MvIF EXPR = "{ NOT Location_Insert( l.location ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_Location_Update" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.location:id"		VALUE = "{ g.id }">
+	<MvASSIGN NAME = "l.location:code"		VALUE = "{ g.code }">
+	<MvASSIGN NAME = "l.location:name"		VALUE = "{ g.name }">
+	<MvASSIGN NAME = "l.location:addr1"		VALUE = "{ g.addr1 }">
+	<MvASSIGN NAME = "l.location:addr2"		VALUE = "{ g.addr2 }">
+	<MvASSIGN NAME = "l.location:city"		VALUE = "{ g.city }">
+	<MvASSIGN NAME = "l.location:state"		VALUE = "{ g.state }">
+	<MvASSIGN NAME = "l.location:zip"		VALUE = "{ g.zip }">
+	<MvASSIGN NAME = "l.location:cntry"		VALUE = "{ g.cntry }">
+	<MvASSIGN NAME = "l.location:lat"		VALUE = "{ g.lat }">
+	<MvASSIGN NAME = "l.location:lng"		VALUE = "{ g.lng }">
+	<MvASSIGN NAME = "l.location:active"	VALUE = "{ g.active }">
+
+	<MvIF EXPR = "{ NOT Location_Update( l.location ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_Location_Delete" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.id"		VALUE = "{ int( g.id ) }">
+
+	<MvIF EXPR = "{ NOT Location_Delete( l.id ) }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
 	</MvIF>
 	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">

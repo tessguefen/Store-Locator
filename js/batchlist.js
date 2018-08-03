@@ -36,7 +36,7 @@ StoreLocator_Batchlist.prototype.onCreateRootColumnList = function() {
 			.SetDisplayInMenu(false)
 			.SetDisplayInList(false),
 			new MMBatchList_Column_CheckboxSlider('Active', 'active', 'active', function( item, checked, delegator ) {
-				StoreLocator_Batchlist.Update_Active( item, checked, delegator );
+				self.Update_Active( item, checked, delegator );
 			} ),
 			new MMBatchList_Column_Code( 'Code', 'code', 'code'),
 			new MMBatchList_Column_Name( 'Name', 'name', 'name'),
@@ -85,6 +85,24 @@ StoreLocator_Batchlist.prototype.onInsert = function( item, callback, delegator 
 	StoreLocator_Batchlist_Function( 'Location_Insert', item.record.mmbatchlist_fieldlist, callback, delegator );
 }
 
+StoreLocator_Batchlist.prototype.onSave = function( item, callback, delegator ) {
+	StoreLocator_Batchlist_Function( 'Location_Update', item.record.mmbatchlist_fieldlist, callback, delegator );
+}
+
+StoreLocator_Batchlist.prototype.Update_Active = function( item, checked, delegator ) {
+	item.record.mmbatchlist_fieldlist.find( function( element ) {
+		if( element.name == 'active' ) {
+			element.value = checked ? 1 : 0;
+			return;
+		}
+	});
+	StoreLocator_Batchlist_Function( 'Location_Update', item.record.mmbatchlist_fieldlist, function( response ) {}, delegator );
+}
+
+StoreLocator_Batchlist.prototype.onDelete = function( item, callback, delegator ) {
+	StoreLocator_Batchlist_Function( 'Location_Delete', item.record.mmbatchlist_fieldlist, callback, delegator );
+}
+
 StoreLocator_Batchlist.prototype.Settings = function() {
 	var self = this;
 	var dialog;
@@ -94,3 +112,66 @@ StoreLocator_Batchlist.prototype.Settings = function() {
 
 	dialog.Show();
 }
+
+function StoreLocatorSettingsDialog() {
+	var self = this;
+
+	this.dialog			= document.getElementById( 'TGSL_Settings' );
+
+	this.wrapper		= document.getElementById( 'TGSL_Settings_Wrapper' );
+
+	this.button_cancel	= document.getElementById( 'TGSL_Settings_dialog_button_cancel' );
+	this.button_save	= document.getElementById( 'TGSL_Settings_dialog_button_save' );
+
+	if ( this.button_cancel )	this.button_cancel.onclick		= function() { self.Cancel(); }
+	if ( this.button_save )		this.button_save.onclick		= function() { self.Save(); }
+}
+
+StoreLocatorSettingsDialog.prototype.Show = function() {
+	Modal_Show( this.dialog, this.button_save.onclick, this.button_cancel.onclick );
+}
+
+StoreLocatorSettingsDialog.prototype.Hide = function() {
+	Modal_Hide();
+}
+
+StoreLocatorSettingsDialog.prototype.Cancel = function(){
+	this.Hide();
+	this.oncancel();
+}
+
+StoreLocatorSettingsDialog.prototype.Save = function(){
+	var self = this;
+
+	var data = self.SerializeInputs( self.wrapper.getElementsByTagName( 'input' ) );
+
+	console.log( data );
+
+	//StoreLocatorSettings_Save( this.data, function( response ) { self.Save_Callback( response ); } );
+}
+
+StoreLocatorSettingsDialog.prototype.SerializeInputs = function( inputs ) {
+	var len = inputs.length;
+	console.log( inputs );
+	var s = [];
+	for ( var i = 0; i < len; i++ ) {
+		field = inputs[i];
+		if ( field.name && !field.disabled && field.type != 'file' && field.type != 'reset' && field.type != 'submit' && field.type != 'button' ) {
+			if ( field.type == 'select-multiple' ) {
+				l = form.elements[i].options.length; 
+				for ( j=0; j<l; j++ ) {
+					if( field.options[j].selected )
+						s[s.length] = { name: field.name, value: field.options[j].value };
+				}
+			} else if ( ( field.type != 'checkbox' && field.type != 'radio' ) || field.checked ) {
+				s[s.length] = { name: field.name, value: field.value };
+			}
+		}
+	}
+	return s;
+}
+
+StoreLocatorSettingsDialog.prototype.onerror	= function( error )	{ Modal_Alert( error ); }
+StoreLocatorSettingsDialog.prototype.oncancel	= function()		{ ; }
+StoreLocatorSettingsDialog.prototype.onsave		= function()		{ ; }
+StoreLocatorSettingsDialog.prototype.ondelete	= function()		{ ; }
