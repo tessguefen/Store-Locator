@@ -13,7 +13,7 @@ function StoreLocator_Batchlist() {
 			self.Feature_Delete_Enable('Delete Location(s)');
 			self.Feature_RowDoubleClick_Enable();
 			self.Feature_SearchBar_SetPlaceholderText( 'Search Locations...' );
-			self.Feature_Buttons_AddButton_Persistent( 'Settings', 'Settings', 'settings', self.Settings );
+			self.Feature_Buttons_AddButton_Persistent( 'Settings', 'Settings', 'logging', self.Settings );
 			self.processingdialog = new ProcessingDialog();
 
 		}
