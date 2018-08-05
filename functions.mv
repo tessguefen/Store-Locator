@@ -17,12 +17,53 @@
 		Location_Load_ID( id, location var )
 		Location_Load_Code( code, location var )
 
+	Additional Field Functions
+		AdditionalField_Read( field var )
+
+		AdditionalField_Insert( field var )
+		AdditionalField_Insert_Lowlevel( field var )
+
+		AdditionalField_Update( field var )
+		AdditionalField_Update_Lowlevel( field var )
+
+		AdditionalField_Delete( id )
+
+		AdditionalField_Load_ID( id, field var )
+		AdditionalField_Load_Code( code, field var )
+		
+		Load_AdditionalFields( fields var )
+		Load_AdditionalFields_Location( location_id, fields var )
+		Load_AdditionalField_Value( location_id, field_id )
+
+
+	Additional Value Functions
+		
+		AdditionalValue_Read( value var )
+
+		AdditionalValue_Load( field_id, location_id, value var )
+
+		AdditionalValue_Update( field_id, location_id, value )
+		AdditionalValue_Insert( field_id, location_id, value )
+
+		AdditionalValue_Delete_All_Location( location_id )
+		AdditionalValue_Delete_All_Field( field_id )
+
+		Location_AdditionalFields_InsertUpdate( fields var )
+
+
 	JSON Functions
 		JSON_StoreLocator_Load_Query( module var )
 		JSON_AdditionalFields_Load_Query( module var )
+
 		JSON_Location_Insert( module var )
 		JSON_Location_Update( module var )
 		JSON_Location_Delete( module var )
+
+		JSON_AdditionalFields_Load_Query( module var )
+
+		JSON_AdditionalField_Insert( module var )
+		JSON_AdditionalField_Update( module var )
+		JSON_AdditionalField_Delete( module var )
 
 </MvCOMMENT>
 
@@ -114,6 +155,10 @@
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0005', 'Could not insert Location.' ) }">
 	</MvIF>
 
+	<MvIF EXPR = "{ ( l.location:fields ) AND ( NOT Location_AdditionalFields_InsertUpdate( l.location:id, l.location:fields ) ) }">
+		<MvFUNCTIONRETURN VALUE = 0>
+	</MvIF>
+
 	<MvFUNCTIONRETURN VALUE = 1>
 </MvFUNCTION>
 
@@ -187,6 +232,10 @@
 	<MvIF EXPR = "{ g.MvQUERY_Error }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0006', 'Could not update location.' ) }">
 	</MvIF>
+
+	<MvIF EXPR = "{ ( l.location:fields ) AND ( NOT Location_AdditionalFields_InsertUpdate( l.location:id, l.location:fields ) ) }">
+		<MvFUNCTIONRETURN VALUE = 0>
+	</MvIF>
 	
 	<MvFUNCTIONRETURN VALUE = 1>
 </MvFUNCTION>
@@ -197,6 +246,10 @@
 			 FIELDS	= "l.id">
 	<MvIF EXPR = "{ g.MvQUERY_Error }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0007', 'Could not delete Location.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT AdditionalValue_Delete_All_Location( l.id ) }">
+		<MvFUNCTIONRETURN VALUE = 0>
 	</MvIF>
 
 	<MvFUNCTIONRETURN VALUE = 1>
@@ -242,6 +295,283 @@
 	<MvFUNCTIONRETURN VALUE = 1>
 </MvFUNCTION>
 
+<MvFUNCTION NAME = "AdditionalField_Read" PARAMETERS = "field var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.field:id"		VALUE = "{ TGSL_AddlFields.d.id }">
+	<MvASSIGN NAME = "l.field:code"		VALUE = "{ TGSL_AddlFields.d.code }">
+	<MvASSIGN NAME = "l.field:name"		VALUE = "{ TGSL_AddlFields.d.name }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalField_Insert" PARAMETERS = "field var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.field:code"		VALUE = "{ trim( l.field:code ) }">
+	<MvASSIGN NAME = "l.field:name"		VALUE = "{ trim( l.field:name ) }">
+
+	<MvIF EXPR = "{ ISNULL l.field:code }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', 'Code is required.' ) }">
+	<MvELSEIF EXPR = "{ NOT [ g.Module_Admin ].Validate_Code( l.field:code ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', g.Validation_Message ) }">
+	<MvELSEIF EXPR = "{ AdditionalField_Load_Code( l.field:code, l.existing_field ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', 'Code already exists.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.field:name }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'name', 'Name is required.' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = "{ AdditionalField_Insert_Lowlevel( l.field ) }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalField_Insert_Lowlevel" PARAMETERS = "field var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.field:id" VALUE = "{ [ g.Module_Library_DB ].StoreKey_Generate( 'TGSL_AddlFields' ) }">
+
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'INSERT INTO ' $ g.Store_Table_Prefix $ 'TGSL_AddlFields
+						  ( id, code, name )
+						  VALUES
+						  ( ?, ?, ? )' }"
+			 FIELDS	= "l.field:id, l.field:code, l.field:name">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0008', 'Could not insert Additional Field.' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalField_Update" PARAMETERS = "field var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.field:code"		VALUE = "{ trim( l.field:code ) }">
+	<MvASSIGN NAME = "l.field:name"		VALUE = "{ trim( l.field:name ) }">
+
+	<MvIF EXPR = "{ NOT AdditionalField_Load_ID( l.field:id, l.previous_field ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'id', 'Additional Field not found.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.field:code }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', 'Code is required.' ) }">
+	<MvELSEIF EXPR = "{ NOT [ g.Module_Admin ].Validate_Code( l.field:code ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', g.Validation_Message ) }">
+	<MvELSEIF EXPR = "{ AdditionalField_Load_Code( l.field:code, l.existing_field ) AND ( l.previous_field:code NE l.existing_field:code ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'code', 'Code already exists.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.field:name }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'name', 'Name is required.' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = "{ AdditionalField_Update_Lowlevel( l.field ) }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalField_Update_Lowlevel" PARAMETERS = "field var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'UPDATE ' $ g.Store_Table_Prefix $ 'TGSL_AddlFields
+						  SET
+							code	= ?,
+							name	= ?
+						  WHERE
+							id		= ?' }"
+			 FIELDS	= "l.field:code, l.field:name, l.field:id">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0008', 'Could not update Additional Field.' ) }">
+	</MvIF>
+	
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalField_Delete" PARAMETERS = "id" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'DELETE FROM ' $ g.Store_Table_Prefix $ 'TGSL_AddlFields WHERE id = ?' }"
+			 FIELDS	= "l.id">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0009', 'Could not delete Additional Field.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT AdditionalValue_Delete_All_Field( l.id ) }">
+		<MvFUNCTIONRETURN VALUE = 0>
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalField_Load_ID" PARAMETERS = "id, field var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvOPENVIEW NAME	= "Merchant"
+				VIEW	= "TGSL_Locations"
+				QUERY	= "{ 'SELECT * FROM ' $ g.Store_Table_Prefix $ 'TGSL_AddlFields WHERE id = ?' }"
+				FIELDS	= "l.id">
+	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0010', 'Could not load Additional Field.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ TGSL_AddlFields.d.EOF }">
+		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlFields">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_DB ].Error_Load_EOF( 'TGSL_Locations-LOCATION-0011' ) }">
+	</MvIF>
+
+	<MvEVAL EXPR = "{ AdditionalField_Read( l.field ) }">
+	<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlFields">
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalField_Load_Code" PARAMETERS = "code, field var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvOPENVIEW NAME	= "Merchant"
+				VIEW	= "TGSL_AddlFields"
+				QUERY	= "{ 'SELECT * FROM ' $ g.Store_Table_Prefix $ 'TGSL_AddlFields WHERE ' $ [ g.Module_Library_Native_DBAPI ].DB_Compare_UPPER( 'code' ) $ ' = ' $ [ g.Module_Library_Native_DBAPI ].DB_Compare_UPPER( '?' ) }"
+				FIELDS	= "l.code">
+	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0012', 'Could not load Additional Field.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ TGSL_AddlFields.d.EOF }">
+		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlFields">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_DB ].Error_Load_EOF( 'TGSL_Locations-LOCATION-0013' ) }">
+	</MvIF>
+
+	<MvEVAL EXPR = "{ AdditionalField_Read( l.field ) }">
+	<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlFields">
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Load_AdditionalFields" PARAMETERS = "fields var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvOPENVIEW	NAME	= "Merchant"
+				VIEW	= "TGSL_AddlFields"
+				QUERY	= "{ 'SELECT * FROM ' $ g.Store_Table_Prefix $ 'TGSL_AddlFields' }">
+
+	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0014:', 'Could not load Additional Fields.' ) }">
+	</MvIF>
+
+	<MvASSIGN NAME = "l.count" VALUE = "0">
+
+	<MvWHILE EXPR = "{ NOT TGSL_AddlFields.d.EOF }">
+		<MvEVAL EXPR = "{ AdditionalField_Read( l.fields[++l.count] ) }">
+		<MvSKIP NAME = "Merchant" VIEW = "TGSL_AddlFields" ROWS = 1>
+	</MvWHILE>
+
+	<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlFields">
+
+	<MvFUNCTIONRETURN VALUE = "{ l.count }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Load_AdditionalFields_Location" PARAMETERS = "location_id, fields var" STANDARDOUTPUTLEVEL = "">
+	<MvFOREACH ITERATOR = "l.field" ARRAY = "l.fields" COUNT = "{ Load_AdditionalFields( l.fields ) }">
+		<MvASSIGN NAME = "l.field" MEMBER = "value" VALUE = "{ Load_AdditionalField_Value( l.location_id, l.field:id ) }">
+	</MvFOREACH>
+	<MvFUNCTIONRETURN VALUE = "{ miva_array_elements( l.fields ) }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Load_AdditionalField_Value" PARAMETERS = "location_id, field_id" STANDARDOUTPUTLEVEL = "">
+	<MvIF EXPR = "{ AdditionalValue_Load( l.field_id, l.location_id, l.value ) }">
+		<MvFUNCTIONRETURN VALUE = "{ l.value:value }">
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalValue_Read" PARAMETERS = "value var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.value:field_id"		VALUE = "{ TGSL_AddlValues.d.field_id }">
+	<MvASSIGN NAME = "l.value:location_id"	VALUE = "{ TGSL_AddlValues.d.location_id }">
+	<MvASSIGN NAME = "l.value:value"		VALUE = "{ TGSL_AddlValues.d.value }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Location_AdditionalFields_InsertUpdate" PARAMETERS = "location_id, fields var" STANDARDOUTPUTLEVEL = "">
+	<MvFOREACH ITERATOR = "l.member" ARRAY = "l.members" COUNT = "{ miva_struct_members( l.fields, l.members ) }">
+		<MvIF EXPR = "{ NOT AdditionalField_Load_Code( l.member, l.field ) }">
+			<MvFOREACHCONTINUE />
+		</MvIF>
+		<MvIF EXPR = "{ AdditionalValue_Load( l.field:id, l.location_id, l.exsisting_value ) }">
+			<MvIF EXPR = "{ NOT AdditionalValue_Update( l.field:id, l.location_id, miva_variable_value( 'l.fields:' $ l.member ) ) }">
+				<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0016', 'Could not update additional field "' $ l.member $ '".' ) }">
+			</MvIF>
+		<MvELSE>
+			<MvIF EXPR = "{ NOT AdditionalValue_Insert( l.field:id, l.location_id, miva_variable_value( 'l.fields:' $ l.member ) ) }">
+				<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0017', 'Could not update additional field "' $ l.member $ '".' ) }">
+			</MvIF>
+		</MvIF>
+	</MvFOREACH>
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalValue_Load" PARAMETERS = "field_id, location_id, value var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvOPENVIEW	NAME	= "Merchant"
+				VIEW	= "TGSL_AddlValues"
+				QUERY	= "{ 'SELECT * FROM ' $ g.Store_Table_Prefix $ 'TGSL_AddlValues WHERE field_id = ? AND location_id = ?' }"
+				FIELDS	= "l.field_id, l.location_id">
+
+	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0018', 'Could not load value for additional field.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ TGSL_AddlValues.d.EOF }">
+		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlValues">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_DB ].Error_Load_EOF( 'TGSL_Locations-LOCATION-0019' ) }">
+	</MvIF>
+
+	<MvEVAL EXPR = "{ AdditionalValue_Read( l.value ) }">
+
+	<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlValues">
+		
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalValue_Update" PARAMETERS = "field_id, location_id, value" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.field_id"		VALUE = "{ int( l.field_id ) }">
+	<MvASSIGN NAME = "l.location_id"	VALUE = "{ int( l.location_id ) }">
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{'UPDATE ' $ g.Store_Table_Prefix $ 'TGSL_AddlValues
+							SET
+								value		= ?
+							WHERE
+								field_id	= ?
+							AND
+								location_id	= ?' }"
+			 FIELDS	= "l.value, l.field_id, l.location_id">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0020', 'Could not update value for additional field.' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalValue_Insert" PARAMETERS = "field_id, location_id, value" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.field_id"		VALUE = "{ int( l.field_id ) }">
+	<MvASSIGN NAME = "l.location_id"	VALUE = "{ int( l.location_id ) }">
+
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'INSERT INTO ' $ g.Store_Table_Prefix $ 'TGSL_AddlValues
+					      ( field_id, location_id, value )
+						  VALUES
+						  ( ?, ?, ? )' }"
+			 FIELDS	= "l.field_id, l.location_id, l.value">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0021', 'Could not insert value for additional field.' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalValue_Delete_All_Location" PARAMETERS = "location_id" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.location_id" VALUE = "{ int( l.location_id ) }">
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'DELETE FROM ' $ g.Store_Table_Prefix $ 'TGSL_AddlValues WHERE location_id = ?' }"
+			 FIELDS	= "l.location_id">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0022', 'Could not delete values for location id "' $ l.location_id $ '".' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "AdditionalValue_Delete_All_Field" PARAMETERS = "field_id" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.field_id" VALUE = "{ int( l.field_id ) }">
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'DELETE FROM ' $ g.Store_Table_Prefix $ 'TGSL_AddlValues WHERE field_id = ?' }"
+			 FIELDS	= "l.field_id">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0023', 'Could not delete values for field id "' $ l.field_id $ '".' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+
 <MvFUNCTION NAME = "JSON_StoreLocator_Load_Query" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
 	<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Store_Open() }"><MvFUNCTIONRETURN></MvIF>
 	<MvASSIGN NAME = "g.Filter"			VALUE = "{ trim( g.Filter ) }">
@@ -286,11 +616,9 @@
 					"cntry" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_Locations.d.cntry ) }">",
 					"lat" : "<MvEVAL EXPR = "{ TGSL_Locations.d.lat }">",
 					"lng" : "<MvEVAL EXPR = "{ TGSL_Locations.d.lng }">"
-					<MvCOMMENT>
-						<MvFOREACH ITERATOR = "l.field" ARRAY = "l.fields" COUNT = "{ Load_Additional_Fields_Product_Review( TGSL_Locations.d.id, l.fields) }">
-							,"AdditionalFields_<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( l.field:code ) }">": "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( l.field:value ) }">"
-						</MvFOREACH>
-					</MvCOMMENT>
+					<MvFOREACH ITERATOR = "l.field" ARRAY = "l.fields" COUNT = "{ Load_AdditionalFields_Location( TGSL_Locations.d.id, l.fields ) }">
+						,"AdditionalFields_<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( l.field:code ) }">": "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( l.field:value ) }">"
+					</MvFOREACH>
 					<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_ArrayElement_End() }">
 					<MvSKIP NAME = "Merchant" VIEW = "TGSL_Locations" ROWS = 1>
 					</MvWHILE>
@@ -364,6 +692,7 @@
 	<MvASSIGN NAME = "l.location:lat"		VALUE = "{ g.lat }">
 	<MvASSIGN NAME = "l.location:lng"		VALUE = "{ g.lng }">
 	<MvASSIGN NAME = "l.location:active"	VALUE = "{ g.active }">
+	<MvASSIGN NAME = "l.location:fields"	VALUE = "{ g.AdditionalFields }">
 
 	<MvIF EXPR = "{ NOT Location_Insert( l.location ) }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
@@ -384,6 +713,7 @@
 	<MvASSIGN NAME = "l.location:lat"		VALUE = "{ g.lat }">
 	<MvASSIGN NAME = "l.location:lng"		VALUE = "{ g.lng }">
 	<MvASSIGN NAME = "l.location:active"	VALUE = "{ g.active }">
+	<MvASSIGN NAME = "l.location:fields"	VALUE = "{ g.AdditionalFields }">
 
 	<MvIF EXPR = "{ NOT Location_Update( l.location ) }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
@@ -395,6 +725,84 @@
 	<MvASSIGN NAME = "l.id"		VALUE = "{ int( g.id ) }">
 
 	<MvIF EXPR = "{ NOT Location_Delete( l.id ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_AdditionalFields_Load_Query" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
+	<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Store_Open() }"><MvFUNCTIONRETURN></MvIF>	
+	<MvASSIGN NAME = "g.Filter"			VALUE = "{ trim( g.Filter ) }">
+	<MvASSIGN NAME = "g.Sort"			VALUE = "{ int( g.Sort ) }">
+	<MvASSIGN NAME = "g.Offset"			VALUE = "{ int( g.Offset ) }">
+	<MvASSIGN NAME = "g.Count"			VALUE = "{ trim( g.Count ) }">
+	<MvASSIGN NAME = "l.search_query"	VALUE = "">
+
+	<MvEVAL EXPR = "{ [ g.Module_Library_DB ].SQL_Query_SELECT( l.search_query,'s.*' ) }">
+
+	<MvEVAL EXPR = "{ [ g.Module_Library_DB ].SQL_Query_FROM( l.search_query, g.Store_Table_Prefix $ 'TGSL_AddlFields', 's' ) }">
+
+	<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Filter( l.search_query, g.Filter,'id:s.id,code:s.code,name:s.name' ) }">
+
+	<MvEVAL EXPR = "{ [ g.Module_Library_DB ].SQL_Query_OrderBy_Fields(l.search_query, g.Sort, 'id:s.id,code:s.code,name:s.name', 's.id' ) }">
+
+	<MvASSIGN NAME = "l.search_sql" VALUE = "{ [ g.Module_Library_DB].SQL_Query_Build( l.search_query, l.search_fields ) }">
+
+	<MvIF EXPR = "{ NOT [ g.Module_Library_DB ].SQL_Query_Count( l.search_query, l.total_count ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error(g.Error_Code, g.Error_Message ) }">
+	<MvELSEIF EXPR = "{ NOT [ g.Module_Library_Native_DBAPI ].DB_OPENVIEW_Range('Merchant', 'TGSL_AddlFields', l.search_sql, l.search_fields, g.Offset, g.Count) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( 'TGStoreLocator-JSON-0003', g.MvOPENVIEW_Error ) }">
+	</MvIF>
+
+	<MvASSIGN NAME = "l.count" VALUE = 0>
+
+	<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Response_Start() }">
+		{
+			"data":
+				[
+					<MvWHILE EXPR = "{ ( NOT TGSL_AddlFields.d.EOF ) AND ( ( g.Count EQ 0 ) OR (l.count LT g.Count ) ) }">
+					<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_ArrayElement_Start( l.count )}">
+					"id": <MvEVAL EXPR = "{ int( TGSL_AddlFields.d.id ) }">,
+					"code" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_AddlFields.d.code ) }">",
+					"name" : "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( TGSL_AddlFields.d.name ) }">"
+					<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_ArrayElement_End() }">
+					<MvSKIP NAME = "Merchant" VIEW = "TGSL_AddlFields" ROWS = 1>
+					</MvWHILE>
+				],
+
+			"total_count": <MvEVAL EXPR = "{ int( l.total_count ) }">,
+			"start_offset": <MvEVAL EXPR = "{ int( g.Offset ) }">
+		}
+		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_AddlFields">
+	}
+
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_AdditionalField_Insert" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.field:code"		VALUE = "{ g.code }">
+	<MvASSIGN NAME = "l.field:name"		VALUE = "{ g.name }">
+
+	<MvIF EXPR = "{ NOT AdditionalField_Insert( l.field ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_AdditionalField_Update" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.field:id"		VALUE = "{ g.id }">
+	<MvASSIGN NAME = "l.field:code"		VALUE = "{ g.code }">
+	<MvASSIGN NAME = "l.field:name"		VALUE = "{ g.name }">
+
+	<MvIF EXPR = "{ NOT AdditionalField_Update( l.field ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_AdditionalField_Delete" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.id"		VALUE = "{ int( g.id ) }">
+
+	<MvIF EXPR = "{ NOT AdditionalField_Delete( l.id ) }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
 	</MvIF>
 	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">

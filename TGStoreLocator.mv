@@ -184,74 +184,84 @@
 </MvCOMMENT>
 
 <MvFUNCTION NAME = "Module_System_Tabs" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "">
-	<MvFUNCTIONRETURN VALUE = "TGSL:Store Locator">
+	<MvFUNCTIONRETURN VALUE = "TGSL_STORES:Store Locator - Stores,TGSL_ADDL:Store Locator - Additional Fields">
 </MvFUNCTION>
 
 <MvFUNCTION NAME = "Module_System_Head" PARAMETERS = "module var, tab" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
-	<MvIF EXPR= "{ l.tab NE 'TGSL' }">
+	<MvIF EXPR= "{ ( l.tab NE 'TGSL_STORES' ) AND ( l.tab NE 'TGSL_ADDL' ) }">
 		<MvFUNCTIONRETURN VALUE = 1>
 	</MvIF>
 	<MvEVAL EXPR = "{ [ g.Module_Admin ].Element_MMBatchList_JavaScript() }">
 	<MvEVAL EXPR = "{ [ g.Module_Admin ].Element_MMBatchList_CSS() }">
-	<script language="JavaScript" src="{ g.clientside_url $ 'Module_Code=' $ encodeattribute( l.module:code ) $ '&Filename=StoreLocator.js' }"></script>
-	<script language="JavaScript">MMScreen_LoadFinished( function() { new StoreLocator_Batchlist(); } );</script>
+	<MvIF EXPR = "{ l.tab EQ 'TGSL_STORES' }">
+		<script language="JavaScript" src="{ g.clientside_url $ 'Module_Code=' $ encodeattribute( l.module:code ) $ '&Filename=StoreLocator.js' }"></script>
+		<script language="JavaScript">MMScreen_LoadFinished( function() { new StoreLocator_Batchlist(); } );</script>
+	<MvELSEIF EXPR = "{ l.tab EQ 'TGSL_ADDL' }">
+		<script language="JavaScript" src="{ g.clientside_url $ 'Module_Code=' $ encodeattribute( l.module:code ) $ '&Filename=AdditionalFields.js' }"></script>
+		<script language="JavaScript">MMScreen_LoadFinished( function() { new AdditionalFields_Batchlist(); } );</script>
+	</MvIF>
 	<MvFUNCTIONRETURN VALUE = 1>
 </MvFUNCTION>
 
 <MvFUNCTION NAME = "Module_System_Content" PARAMETERS = "module var, tab, load_fields" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
-	<MvIF EXPR= "{ l.tab NE 'TGSL' }">
+	<MvIF EXPR= "{ ( l.tab NE 'TGSL_STORES' ) AND ( l.tab NE 'TGSL_ADDL' ) }">
 		<MvFUNCTIONRETURN VALUE = 1>
 	</MvIF>
 	<MvEVAL EXPR = "{ [ g.Module_Admin ].Element_MMBatchList_HTML() }">
-	<div id="jsStoreLocator_Batchlist"></div>
 
-	<!-- TGSL_Settings MM Dialog -->
-	<div id="TGSL_Settings" class="mm_dialog">
-		<div id="TGSL_Settings_dialog_title" class="mm_dialog_title">Settings</div>
-		<div class="mm_clear"></div>
-		<table id="TGSL_Settings_Wrapper">
-			<tbody>
-				<tr>
-					<th colspan="2" align="left">Google API Key</th>
-				</tr>
-				<tr>
-					<td class="mm_dialog_prompt_required">Default Search Radius:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:DefaultSearchRadius" id="TGSL_Settings:DefaultSearchRadius" />
-					</td>
-				</tr>
-				<tr>
-					<td class="mm_dialog_prompt_required">Search Radius Options:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<textarea name="TGSL_Settings:SearchRadiusOptions" id="TGSL_Settings:SearchRadiusOptions"></textarea>
-					</td>
-				</tr>
-				<tr>
-					<td colspan="2"><hr /></td>
-				</tr>
-				<tr>
-					<th colspan="2" align="left">Google API Key</th>
-				</tr>
-				<tr>
-					<td class="mm_dialog_prompt_required">API Key:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:Apikey" id="TGSL_Settings:Apikey" />
-					</td>
-				</tr>
-				<tr>
-					<td class="mm_dialog_prompt_required">API Url:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:ApiUrl" id="TGSL_Settings:ApiUrl" />
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<div class="mm_dialog_buttons_left">
-			<input id="TGSL_Settings_dialog_button_cancel" type="button" value="Cancel">
+	<MvIF EXPR = "{ l.tab EQ 'TGSL_STORES' }">
+		<div id="jsStoreLocator_Batchlist"></div>
+
+		<!-- TGSL_Settings MM Dialog -->
+		<div id="TGSL_Settings" class="mm_dialog">
+			<div id="TGSL_Settings_dialog_title" class="mm_dialog_title">Settings</div>
+			<div class="mm_clear"></div>
+			<table id="TGSL_Settings_Wrapper">
+				<tbody>
+					<tr>
+						<th colspan="2" align="left">Google API Key</th>
+					</tr>
+					<tr>
+						<td class="mm_dialog_prompt_required">Default Search Radius:</td>
+						<td class="TGSL_Settings_dialog_field">
+							<input type="text" name="TGSL_Settings:DefaultSearchRadius" id="TGSL_Settings:DefaultSearchRadius" />
+						</td>
+					</tr>
+					<tr>
+						<td class="mm_dialog_prompt_required">Search Radius Options:</td>
+						<td class="TGSL_Settings_dialog_field">
+							<textarea name="TGSL_Settings:SearchRadiusOptions" id="TGSL_Settings:SearchRadiusOptions"></textarea>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2"><hr /></td>
+					</tr>
+					<tr>
+						<th colspan="2" align="left">Google API Key</th>
+					</tr>
+					<tr>
+						<td class="mm_dialog_prompt_required">API Key:</td>
+						<td class="TGSL_Settings_dialog_field">
+							<input type="text" name="TGSL_Settings:Apikey" id="TGSL_Settings:Apikey" />
+						</td>
+					</tr>
+					<tr>
+						<td class="mm_dialog_prompt_required">API Url:</td>
+						<td class="TGSL_Settings_dialog_field">
+							<input type="text" name="TGSL_Settings:ApiUrl" id="TGSL_Settings:ApiUrl" />
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="mm_dialog_buttons_left">
+				<input id="TGSL_Settings_dialog_button_cancel" type="button" value="Cancel">
+			</div>
+			<div class="mm_dialog_buttons_right"><input id="TGSL_Settings_dialog_button_save" type="button" value="Add"></div>
 		</div>
-		<div class="mm_dialog_buttons_right"><input id="TGSL_Settings_dialog_button_save" type="button" value="Add"></div>
-	</div>
-	<!-- TGSL_Settings MM Dialog -->
+		<!-- TGSL_Settings MM Dialog -->
+	<MvELSEIF EXPR = "{ l.tab EQ 'TGSL_ADDL' }">
+		<div id="jsStoreLocatorAdditionalFields_Batchlist"></div>
+	</MvIF>
 	<MvFUNCTIONRETURN VALUE = 1>
 </MvFUNCTION>
 
@@ -274,11 +284,15 @@
 	<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Store_Open() }">
 		<MvFUNCTIONRETURN>
 	</MvIF>
-	<MvIF EXPR = "{ g.Module_Function EQ 'StoreLocator_Load_Query'	}"><MvFUNCTIONRETURN VALUE = "{ JSON_StoreLocator_Load_Query( l.module ) }"></MvIF>
-	<MvIF EXPR = "{ g.Module_Function EQ 'Load_Additional_Fields'	}"><MvFUNCTIONRETURN VALUE = "{ JSON_Load_Additional_Fields( l.module ) }"></MvIF>
-	<MvIF EXPR = "{ g.Module_Function EQ 'Location_Insert'			}"><MvFUNCTIONRETURN VALUE = "{ JSON_Location_Insert( l.module ) }"></MvIF>
-	<MvIF EXPR = "{ g.Module_Function EQ 'Location_Update'			}"><MvFUNCTIONRETURN VALUE = "{ JSON_Location_Update( l.module ) }"></MvIF>
-	<MvIF EXPR = "{ g.Module_Function EQ 'Location_Delete'			}"><MvFUNCTIONRETURN VALUE = "{ JSON_Location_Delete( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'StoreLocator_Load_Query'		}"><MvFUNCTIONRETURN VALUE = "{ JSON_StoreLocator_Load_Query( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'Load_Additional_Fields'		}"><MvFUNCTIONRETURN VALUE = "{ JSON_Load_Additional_Fields( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'Location_Insert'				}"><MvFUNCTIONRETURN VALUE = "{ JSON_Location_Insert( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'Location_Update'				}"><MvFUNCTIONRETURN VALUE = "{ JSON_Location_Update( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'Location_Delete'				}"><MvFUNCTIONRETURN VALUE = "{ JSON_Location_Delete( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'AdditionalFields_Load_Query'	}"><MvFUNCTIONRETURN VALUE = "{ JSON_AdditionalFields_Load_Query( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'AdditionalField_Insert'		}"><MvFUNCTIONRETURN VALUE = "{ JSON_AdditionalField_Insert( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'AdditionalField_Update'		}"><MvFUNCTIONRETURN VALUE = "{ JSON_AdditionalField_Update( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'AdditionalField_Delete'		}"><MvFUNCTIONRETURN VALUE = "{ JSON_AdditionalField_Delete( l.module ) }"></MvIF>
 </MvFUNCTION>
 
 <MvCOMMENT>
@@ -292,6 +306,10 @@
 		<MvEVAL EXPR = "{ [ g.Module_Clientside ].Module_Content_Type( l.module, 'text/javascript' ) }">
 		<MvINCLUDE FILE = "js/functions.js" INTERPRET = "OFF">
 		<MvINCLUDE FILE = "js/batchlist.js" INTERPRET = "OFF">
+	<MvELSEIF EXPR = "{ g.Filename EQ 'AdditionalFields.js' }">
+		<MvEVAL EXPR = "{ [ g.Module_Clientside ].Module_Content_Type( l.module, 'text/javascript' ) }">
+		<MvINCLUDE FILE = "js/addl_functions.js" INTERPRET = "OFF">
+		<MvINCLUDE FILE = "js/addl_batchlist.js" INTERPRET = "OFF">
 	</MvIF>
 </MvFUNCTION>
 

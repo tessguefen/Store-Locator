@@ -1,9 +1,11 @@
 function StoreLocator_Batchlist() {
 	var self = this;
-	Load_Additional_Fields( function( response) {
+	Load_AdditionalFields( function( response) {
 		if ( response.success ) {
-			self.additional_fields = response.data;
-			self.additional_fields_length = self.additional_fields.length;
+			self.additionalfields = response.data.data;
+			self.additionalfields_length = self.additionalfields.length;
+
+			console.log( self );
 			
 			MMBatchList.call( self, 'jsStoreLocator_Batchlist' );
 
@@ -36,7 +38,7 @@ StoreLocator_Batchlist.prototype.onCreateRootColumnList = function() {
 			.SetDisplayInMenu(false)
 			.SetDisplayInList(false),
 			new MMBatchList_Column_CheckboxSlider('Active', 'active', 'active', function( item, checked, delegator ) {
-				self.Update_Active( item, checked, delegator );
+				self.Update_Active( 'active', item, checked, delegator );
 			} ),
 			new MMBatchList_Column_Code( 'Code', 'code', 'code'),
 			new MMBatchList_Column_Name( 'Name', 'name', 'name'),
@@ -50,8 +52,8 @@ StoreLocator_Batchlist.prototype.onCreateRootColumnList = function() {
 			new MMBatchList_Column_Name( 'Longitude', 'lng', 'lng' )
 		);
 
-		for ( i = 0, i_len = self.additional_fields_length; i < i_len; i++ ) {
-			columnlist.push( new MMBatchList_Column_Text( 'Field: ' + self.additional_fields[ i ].name, 'AdditionalFields_' + self.additional_fields[ i ].code, 'AdditionalFields:' + self.additional_fields[ i ].code ).SetAdvancedSearchEnabled(false).SetSortByField( '' ) );
+		for ( i = 0, i_len = self.additionalfields_length; i < i_len; i++ ) {
+			columnlist.push( new MMBatchList_Column_Text( 'Field: ' + self.additionalfields[ i ].name, 'AdditionalFields_' + self.additionalfields[ i ].code, 'AdditionalFields:' + self.additionalfields[ i ].code ).SetAdvancedSearchEnabled(false).SetSortByField( '' ) );
 		}
 
 	return columnlist;
@@ -74,9 +76,8 @@ StoreLocator_Batchlist.prototype.onCreate = function() {
 	record.cntry = '';
 	record.lat = '';
 	record.lng = '';
-	for ( i = 0, i_len = self.additional_fields_length; i < i_len; i++ ) {
-		var code = 'AdditionalFields_' + self.additional_fields[ i ].code;
-		record[code] = '';
+	for ( i = 0, i_len = self.additionalfields_length; i < i_len; i++ ) {
+		record[ 'AdditionalFields_' + self.additionalfields[ i ].code ] = '';
 	}
 	return record;
 }
@@ -89,9 +90,9 @@ StoreLocator_Batchlist.prototype.onSave = function( item, callback, delegator ) 
 	StoreLocator_Batchlist_Function( 'Location_Update', item.record.mmbatchlist_fieldlist, callback, delegator );
 }
 
-StoreLocator_Batchlist.prototype.Update_Active = function( item, checked, delegator ) {
+StoreLocator_Batchlist.prototype.Update_Active = function( key, item, checked, delegator ) {
 	item.record.mmbatchlist_fieldlist.find( function( element ) {
-		if( element.name == 'active' ) {
+		if( element.name == key ) {
 			element.value = checked ? 1 : 0;
 			return;
 		}
