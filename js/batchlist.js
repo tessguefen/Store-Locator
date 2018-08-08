@@ -4,8 +4,6 @@ function StoreLocator_Batchlist() {
 		if ( response.success ) {
 			self.additionalfields = response.data.data;
 			self.additionalfields_length = self.additionalfields.length;
-
-			console.log( self );
 			
 			MMBatchList.call( self, 'jsStoreLocator_Batchlist' );
 
@@ -16,6 +14,7 @@ function StoreLocator_Batchlist() {
 			self.Feature_RowDoubleClick_Enable();
 			self.Feature_SearchBar_SetPlaceholderText( 'Search Locations...' );
 			self.Feature_Buttons_AddButton_Persistent( 'Settings', 'Settings', 'logging', self.Settings );
+			self.Feature_Buttons_AddButton_Persistent( 'Additional Fields', 'Additional Fields', 'add', self.AddAdditionalFields );
 			self.processingdialog = new ProcessingDialog();
 
 		}
@@ -153,7 +152,6 @@ StoreLocatorSettingsDialog.prototype.Save = function(){
 
 StoreLocatorSettingsDialog.prototype.SerializeInputs = function( inputs ) {
 	var len = inputs.length;
-	console.log( inputs );
 	var s = [];
 	for ( var i = 0; i < len; i++ ) {
 		field = inputs[i];
@@ -176,3 +174,38 @@ StoreLocatorSettingsDialog.prototype.onerror	= function( error )	{ Modal_Alert( 
 StoreLocatorSettingsDialog.prototype.oncancel	= function()		{ ; }
 StoreLocatorSettingsDialog.prototype.onsave		= function()		{ ; }
 StoreLocatorSettingsDialog.prototype.ondelete	= function()		{ ; }
+
+function StoreLocatorAdditionalFields_Dialog() {
+	var self = this;
+	var addlfields_mmbatchlist;
+	
+	addlfields_mmbatchlist = new AdditionalFields_Batchlist();
+	addlfields_mmbatchlist.onConstruct = function() {
+		self.SetBatchList( addlfields_mmbatchlist );
+		var batchlistWrapper = document.getElementById( 'js_batchlistdialog_additionalfields' );
+		batchlistWrapper.style.height = '';
+	};
+
+	MMBatchListDialog.call( self, 'mm9_batchlistdialog_additionalfields', 900, 600 );
+	
+	self.button_cancel		= self.ActionItem_Add( 'Cancel', function() { self.Hide(); } );
+
+	self.SetTitle( 'Additional Fields' );
+	self.SetResizeEnabled();
+}
+DeriveFrom( MMBatchListDialog, StoreLocatorAdditionalFields_Dialog );
+
+StoreLocatorAdditionalFields_Dialog.prototype.onok = function( item ) { ; };
+
+StoreLocator_Batchlist.prototype.AddAdditionalFields = function() {
+	var self = this;
+	var dialog;
+
+	dialog			= new StoreLocatorAdditionalFields_Dialog();
+	dialog.onhide	= function() { typeof Reload == 'function' ? Reload() : self.Refresh(); };
+
+	dialog.Show();
+}
+
+
+

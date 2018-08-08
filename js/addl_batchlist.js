@@ -1,6 +1,16 @@
 function AdditionalFields_Batchlist() {
 	var self = this;
-	MMBatchList.call( self, 'jsStoreLocatorAdditionalFields_Batchlist' );
+	this.Construct();
+	setTimeout(function(){
+		self.onConstruct();
+	 }, 1);
+}
+
+DeriveFrom( MMBatchList, AdditionalFields_Batchlist );
+
+AdditionalFields_Batchlist.prototype.Construct = function() {
+	var self = this;
+	MMBatchList.call( self, 'js_batchlistdialog_additionalfields' );
 	self.Feature_SearchBar_SetPlaceholderText( 'Search Additional Fields...' );
 	self.SetDefaultSort( 'id', '' );
 	self.Feature_Add_Enable('Add Additional Field');
@@ -8,8 +18,7 @@ function AdditionalFields_Batchlist() {
 	self.Feature_Delete_Enable('Delete Additional Field(s)');
 	self.Feature_RowDoubleClick_Enable();
 }
-
-DeriveFrom( MMBatchList, AdditionalFields_Batchlist );
+AdditionalFields_Batchlist.prototype.onConstruct = function() { ; }
 
 AdditionalFields_Batchlist.prototype.onLoad = AdditionalFields_Load_Query;
 
