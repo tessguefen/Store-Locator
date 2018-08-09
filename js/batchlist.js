@@ -14,7 +14,7 @@ function StoreLocator_Batchlist() {
 			self.Feature_RowDoubleClick_Enable();
 			self.Feature_SearchBar_SetPlaceholderText( 'Search Locations...' );
 			self.Feature_Buttons_AddButton_Persistent( 'Settings', 'Settings', 'logging', self.Settings );
-			self.Feature_Buttons_AddButton_Persistent( 'Additional Fields', 'Additional Fields', 'add', self.AddAdditionalFields );
+			self.Feature_Buttons_AddButton_Persistent( 'Manage Additional Fields', 'Manage Additional Fields', '', self.AddAdditionalFields );
 			self.processingdialog = new ProcessingDialog();
 
 		}
@@ -202,7 +202,10 @@ StoreLocator_Batchlist.prototype.AddAdditionalFields = function() {
 	var dialog;
 
 	dialog			= new StoreLocatorAdditionalFields_Dialog();
-	dialog.onhide	= function() { typeof Reload == 'function' ? Reload() : self.Refresh(); };
+	dialog.onhide	= function() {
+		// If someone deletes or adds a field... we need to update the batchlist basically.
+		new StoreLocator_Batchlist();
+	};
 
 	dialog.Show();
 }
