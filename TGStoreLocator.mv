@@ -216,7 +216,7 @@
 		<table id="TGSL_Settings_Wrapper">
 			<tbody>
 				<tr>
-					<th colspan="2" align="left">Google API Key</th>
+					<th colspan="2" align="left">UI Settings</th>
 				</tr>
 				<tr>
 					<td class="mm_dialog_prompt_required">Default Search Radius:</td>
@@ -234,18 +234,36 @@
 					<td colspan="2"><hr /></td>
 				</tr>
 				<tr>
-					<th colspan="2" align="left">Google API Key</th>
+					<th colspan="2" align="left">Google Geocoding</th>
 				</tr>
 				<tr>
 					<td class="mm_dialog_prompt_required">API Key:</td>
 					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:Apikey" id="TGSL_Settings:Apikey" />
+						<input type="text" name="TGSL_Settings:Geocode_ApiKey" id="TGSL_Settings:Geocode_ApiKey" />
 					</td>
 				</tr>
 				<tr>
 					<td class="mm_dialog_prompt_required">API Url:</td>
 					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:ApiUrl" id="TGSL_Settings:ApiUrl" />
+						<input type="text" name="TGSL_Settings:Geocode_Url" id="TGSL_Settings:Geocode_Url" />
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2"><hr /></td>
+				</tr>
+				<tr>
+					<th colspan="2" align="left">Google Maps</th>
+				</tr>
+				<tr>
+					<td class="mm_dialog_prompt_required">API Key:</td>
+					<td class="TGSL_Settings_dialog_field">
+						<input type="text" name="TGSL_Settings:Maps_Apikey" id="TGSL_Settings:Maps_Apikey" />
+					</td>
+				</tr>
+				<tr>
+					<td class="mm_dialog_prompt_required">API Url:</td>
+					<td class="TGSL_Settings_dialog_field">
+						<input type="text" name="TGSL_Settings:Maps_Url" id="TGSL_Settings:Maps_Url" />
 					</td>
 				</tr>
 			</tbody>

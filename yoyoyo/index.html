@@ -1,0 +1,164 @@
+<mvt:if expr="g.Action EQ 'Search_Locations'">
+	<mvt:do file="g.Module_Root $ '/modules/system/TGStoreLocator.mvc'" name="l.success" value="Search_Locations( g.Lat, g.Lng, g.Radius, l.return )" />
+	<mvt:do file="g.Module_JSON" name="l.success" value="JSON_Output( l.return )" />
+	<mvt:exit />
+</mvt:if>
+<mvt:item name="html_profile" />
+<head>
+	<mvt:if expr="NOT ISNULL l.settings:page:title">
+		<title>&mvt:page:title;</title>
+	<mvt:else>
+		<title>&mvt:store:name;: &mvte:page:name;</title>
+	</mvt:if>
+
+	<base href="&mvt:global:basehref;" />
+	<link rel="canonical" href="&mvte:urls:_self:auto;" />
+	<mvt:item name="head" param="css_list" />
+	<mvt:item name="head" param="head_tag" />
+	<style>
+	#map {height: 100%; height: 550px; width: 100%;}
+	html, body {height: 100%; margin: 0; padding: 0;}
+</style>
+</head>
+<body class="ABUS">
+	<div id="site-container">
+		<div id="global-header"><mvt:item name="hdft" param="global_header" /></div>
+		<div id="navigation-bar"><mvt:item name="navbar" /></div>
+		<table id="content-container">
+			<tr>
+				<td id="left-navigation"><mvt:item name="category_tree" /></td>
+				<td id="main-content">
+					<div id="page-header"><mvt:item name="hdft" param="header" /></div>
+					<div id="breadcrumbs"><mvt:item name="breadcrumbs" /></div>
+					<h1>&mvte:page:name;</h1>
+					<div>
+						<label for="raddressInput">Search location:</label>
+						<input type="text" id="addressInput" size="15"/>
+						<label for="radiusSelect">Radius:</label>
+						<select id="radiusSelect" label="Radius">
+							<option value="50" selected>50 Miles</option>
+							<option value="30">30 Miles</option>
+							<option value="20">20 Miles</option>
+							<option value="10">10 Miles</option>
+						</select>
+
+						<input type="button" id="searchButton" value="Search"/>
+					</div>
+					<div id="map"></div>
+					<script>
+						var map;
+						var markers = [];
+						var infoWindow;
+
+						function initMap() {
+							map = new google.maps.Map(document.getElementById('map'), {
+								center: {lat: 32.8242404, lng: -117.389167},
+								zoom: 11,
+								mapTypeId: 'roadmap',
+								mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU}
+							});
+							infoWindow = new google.maps.InfoWindow();
+
+							searchButton = document.getElementById("searchButton").onclick = searchLocations;
+
+							searchLocationsNear( 32.8242404, -117.389167 );
+						}
+
+						function searchLocations() {
+							var address = document.getElementById("addressInput").value;
+							var geocoder = new google.maps.Geocoder();
+							geocoder.geocode({address: address}, function(results, status) {
+								if (status == google.maps.GeocoderStatus.OK) {
+									searchLocationsNear( results[0].geometry.location.lat(), results[0].geometry.location.lng() );
+								} else {
+									alert(address + ' not found');
+								}
+							});
+						}
+
+						function clearLocations() {
+							infoWindow.close();
+							for (var i = 0; i < markers.length; i++) {
+								markers[i].setMap(null);
+							}
+							markers.length = 0;
+						}
+
+						function searchLocationsNear( lat, lng ) {
+							clearLocations();
+
+							var radius = document.getElementById('radiusSelect').value;
+							var searchUrl = '&mvtj:urls:_self:auto;';
+							var params = 'Action=Search_Locations&Lat=' + encodeURIComponent( lat ) + '&Lng=' + encodeURIComponent( lng ) + '&Radius=' + encodeURIComponent( radius );
+							sendRequest(searchUrl, params, function(data) {
+								var locations = data.locations;
+								var bounds = new google.maps.LatLngBounds();
+								for (var i = 0; i < data.locations_count; i++) {
+									var id = locations[i].id;
+									var name = locations[i].name;
+									var address = formatLocationAddress( locations[i] );
+									var distance = parseFloat(locations[i].distance);
+									var latlng = new google.maps.LatLng(
+										parseFloat(locations[i].lat),
+										parseFloat(locations[i].lng)
+									);
+									createMarker(latlng, name, address, distance);
+									bounds.extend(latlng);
+								}
+								map.fitBounds(bounds);
+							});
+						}
+
+						function createMarker(latlng, name, address, distance) {
+							var formatted_distance = parseFloat( distance );
+							formatted_distance = formatted_distance.toFixed(2) + ' Miles';
+							var html = "<b>" + name + "</b> <br/>" + address + '<br/><br />' + formatted_distance;
+							var marker = new google.maps.Marker({
+								map: map,
+								position: latlng
+							});
+							google.maps.event.addListener(marker, 'click', function() {
+								infoWindow.setContent(html);
+								infoWindow.open(map, marker);
+							});
+							markers.push(marker);
+						}
+
+						function sendRequest(url, params, callback) {
+							var request = new XMLHttpRequest();
+							request.open('POST', url, true);
+							request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+							request.onload = function() {
+								if (this.status === 200) {
+									callback( JSON.parse( this.responseText ) );
+								} else {
+									console.log( this );
+								}
+							};
+							request.send( params );
+						}
+
+						function doNothing() {}
+
+						function formatLocationAddress( location ) {
+							var r = location.addr1;
+							r += location.addr2 ? location.addr2 : '';
+							r += '<br />';
+							r += location.city ? location.city + ', ' : '';
+							r += location.state ? location.state + ' ' : '';
+							r += location.zip ? location.zip : '';
+							r += location.cntry ? '<br />' + location.cntry : '';
+							return r;
+						}
+					</script>
+					<div id="page-footer"><mvt:item name="hdft" param="footer" /></div>
+				</td>
+			</tr>
+		</table>
+		<div id="bottom-wrap"></div>
+		<div id="global-footer"><mvt:item name="hdft" param="global_footer" /></div>
+		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6GPANDp6pfLliEBQ3lPzu8fkQKpQ9i98&callback=initMap"></script>
+	</div>
+</body>
+</html>

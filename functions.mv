@@ -65,6 +65,9 @@
 		JSON_AdditionalField_Update( module var )
 		JSON_AdditionalField_Delete( module var )
 
+	Front-end Functions
+		Search_Locations( lat, lng, radius, return var )
+
 	
 
 </MvCOMMENT>
@@ -808,4 +811,50 @@
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( g.Error_Code, g.Error_Message ) }">
 	</MvIF>
 	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "LocationSearch_Read" PARAMETERS = "location var" STANDARDOUTPUTLEVEL = "">
+	<MvEVAL EXPR = "{ Location_Read( l.location ) }">
+	<MvASSIGN NAME = "l.location:distance" VALUE = "{ TGSL_Locations.d.distance }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Search_Locations" PARAMETERS = "lat, lng, radius, return var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.lat"		VALUE = "{ trim( l.lat ) }">
+	<MvASSIGN NAME = "l.lng"		VALUE = "{ trim( l.lng ) }">
+	<MvASSIGN NAME = "l.radius"		VALUE = "{ int( l.radius ) }">
+
+	<MvASSIGN NAME = "l.return:locations_count" VALUE = "0">
+	
+	<MvIF EXPR = "{ NOT [ g.Module_Admin ].Validate_FloatingPoint( l.lat ) }">
+		<MvASSIGN NAME = "l.return:error_message" VALUE = "{ g.Validation_Message }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'lat', g.Validation_Message ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_Admin ].Validate_FloatingPoint( l.lng ) }">
+		<MvASSIGN NAME = "l.return:error_message" VALUE = "{ g.Validation_Message }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'lng', g.Validation_Message ) }">
+	</MvIF>
+
+	<MvOPENVIEW	NAME	= "Merchant"
+				VIEW	= "TGSL_Locations"
+				QUERY	= "{ 'SELECT *, ( 3959 * acos( cos( radians( ? ) ) * cos( radians( lat ) ) * cos( radians( lng ) - radians( ? ) ) + sin( radians( ?) ) * sin( radians( lat ) ) ) ) AS distance FROM ' $ g.Store_Table_Prefix $ 'TGSL_Locations HAVING distance < ? ORDER BY distance LIMIT 0 , 20' }"
+				FIELDS	= "l.lat, l.lng, l.lat, l.radius">
+
+	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0024:', 'Could not load Locations.' ) }">
+	</MvIF>
+
+
+	<MvWHILE EXPR = "{ NOT TGSL_Locations.d.EOF }">
+		<MvEVAL EXPR = "{ LocationSearch_Read( l.return:locations[++l.return:locations_count] ) }">
+		<MvSKIP NAME = "Merchant" VIEW = "TGSL_Locations" ROWS = 1>
+	</MvWHILE>
+
+	<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_Locations">
+
+	<MvASSIGN NAME = "l.return:lat"		VALUE = "{ l.lat }">
+	<MvASSIGN NAME = "l.return:lng"		VALUE = "{ l.lng }">
+	<MvASSIGN NAME = "l.return:radius"	VALUE = "{ l.radius }">
+
+	<MvFUNCTIONRETURN VALUE = "{ l.return:locations_count }">
 </MvFUNCTION>
