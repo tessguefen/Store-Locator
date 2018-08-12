@@ -231,6 +231,13 @@
 					</td>
 				</tr>
 				<tr>
+					<td class="mm_dialog_prompt_required">Map Center Latitude/ Longitude:</td>
+					<td class="TGSL_Settings_dialog_field">
+						<input name="TGSL_Settings:MapCenterLatLng" id="TGSL_Settings:MapCenterLatLng" />
+						<br /><em>Example: 32.8242404, -117.389167</em>
+					</td>
+				</tr>
+				<tr>
 					<td colspan="2"><hr /></td>
 				</tr>
 				<tr>

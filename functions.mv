@@ -837,7 +837,7 @@
 
 	<MvOPENVIEW	NAME	= "Merchant"
 				VIEW	= "TGSL_Locations"
-				QUERY	= "{ 'SELECT *, ( 3959 * acos( cos( radians( ? ) ) * cos( radians( lat ) ) * cos( radians( lng ) - radians( ? ) ) + sin( radians( ?) ) * sin( radians( lat ) ) ) ) AS distance FROM ' $ g.Store_Table_Prefix $ 'TGSL_Locations HAVING distance < ? ORDER BY distance LIMIT 0 , 20' }"
+				QUERY	= "{ 'SELECT *, ( 3959 * acos( cos( radians( ? ) ) * cos( radians( lat ) ) * cos( radians( lng ) - radians( ? ) ) + sin( radians( ?) ) * sin( radians( lat ) ) ) ) AS distance FROM ' $ g.Store_Table_Prefix $ 'TGSL_Locations WHERE active = 1 HAVING distance < ? ORDER BY distance LIMIT 0 , 20' }"
 				FIELDS	= "l.lat, l.lng, l.lat, l.radius">
 
 	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">

@@ -61,7 +61,7 @@
 
 							searchButton = document.getElementById("searchButton").onclick = searchLocations;
 
-							searchLocationsNear( 32.8242404, -117.389167 );
+							searchLocationsNear( map.center.lat(), map.center.lng() );
 						}
 
 						function searchLocations() {
