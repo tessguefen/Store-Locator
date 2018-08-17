@@ -38,6 +38,23 @@
 	</MvIF>
 
 	<MvCOMMENT>
+		Insert Default Settings
+	</MvCOMMENT>
+	<MvQUERY	NAME	= "Merchant"
+				QUERY	= "{ 'INSERT INTO ' $ g.Store_Table_Prefix $ 'TGSL_Settings ( name, value ) VALUES
+								( \'DefaultSearchRadius\', \'50\' ),
+								( \'SearchRadiusOptions\', \'10,20,50,100\' ),
+								( \'MapCenterLatLng\', \'39.8283,-98.5795\' ),
+								( \'Geocode_ApiKey\', \'\' ),
+								( \'Geocode_Url\', \'https://maps.googleapis.com/maps/api/geocode/json\' ),
+								( \'Maps_Apikey\', \'\' ),
+								( \'Maps_Url\', \'https://maps.googleapis.com/maps/api/js\' )' }">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvASSIGN NAME = "l.void" VALUE = "{ Module_Uninstall_Store( l.module ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGStoreLocator-INSTALL-0011', 'An error occured while adding the Default Settings.' ) }">
+	</MvIF>
+
+	<MvCOMMENT>
 		Create Main Locations Table
 	</MvCOMMENT>
 	<MvQUERY	NAME = "Merchant"
@@ -208,6 +225,9 @@
 	<MvEVAL EXPR = "{ [ g.Module_Admin ].Element_MMBatchList_HTML() }">
 
 	<div id="jsStoreLocator_Batchlist"></div>
+	<span id="TGStoreLocator_mmbatchlist_persistent_filters" class="mm9_batchlist_action_row_section" style="font-size:16px;">
+		Store Locator
+	</span>
 
 	<!-- TGSL_Settings MM Dialog -->
 	<div id="TGSL_Settings" class="mm_dialog">

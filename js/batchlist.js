@@ -15,6 +15,7 @@ function StoreLocator_Batchlist() {
 			self.Feature_SearchBar_SetPlaceholderText( 'Search Locations...' );
 			self.Feature_Buttons_AddButton_Persistent( 'Settings', 'Settings', 'logging', self.Settings );
 			self.Feature_Buttons_AddButton_Persistent( 'Manage Additional Fields', 'Manage Additional Fields', '', self.AddAdditionalFields );
+			self.Feature_Persistent_Filters_Enable( 'TGStoreLocator' );
 			self.processingdialog = new ProcessingDialog();
 
 		}
@@ -142,12 +143,12 @@ StoreLocatorSettingsDialog.prototype.Cancel = function(){
 
 StoreLocatorSettingsDialog.prototype.Save = function(){
 	var self = this;
-
-	var data = self.SerializeInputs( self.wrapper.getElementsByTagName( 'input' ) );
-
+	var data = self.SerializeInputs( self.wrapper.getElementsByTagName( '*' ) );
 	console.log( data );
-
-	//StoreLocatorSettings_Save( this.data, function( response ) { self.Save_Callback( response ); } );
+	StoreLocator_Settings_Update( data, function( response ) { self.Save_Callback( response ); } );
+}
+StoreLocatorSettingsDialog.prototype.Save_Callback = function( response ) {
+	console.log( response );
 }
 
 StoreLocatorSettingsDialog.prototype.SerializeInputs = function( inputs ) {

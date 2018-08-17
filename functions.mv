@@ -3,6 +3,20 @@
 		Generate_Location_Code()
 		Geocode_Location( location var )
 
+	Setting Functions
+		Allowed_Settings()
+		Setting_Allowed( setting_name )
+
+		Setting_Read( setting var )
+
+		Setting_Update( setting var )
+		Setting_Update_Lowlevel( setting var )
+
+		Setting_Load_Name( name, setting var )
+		Settings_Load_All( settings var )
+
+		Settings_Update( settings var )
+
 	Location Functions
 		Location_Read( location var )
 
@@ -68,9 +82,95 @@
 	Front-end Functions
 		Search_Locations( lat, lng, radius, return var )
 
-	
-
 </MvCOMMENT>
+
+<MvFUNCTION NAME = "Allowed_Settings" STANDARDOUTPUTLEVEL = "">
+	<MvFUNCTIONRETURN VALUE = "DefaultSearchRadius,SearchRadiusOptions,MapCenterLatLng,Geocode_ApiKey,Geocode_Url,Maps_Apikey,Maps_Url">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Setting_Allowed" PARAMETERS = "setting_name" STANDARDOUTPUTLEVEL = "">
+	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Value_In_List( l.setting_name, Allowed_Settings() ) }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Setting_Read" PARAMETERS = "setting var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.setting:name"		VALUE = "{ TGSL_Settings.d.name }">
+	<MvASSIGN NAME = "l.setting:value"		VALUE = "{ TGSL_Settings.d.value }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Setting_Update" PARAMETERS = "setting var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.setting:name"	VALUE = "{ trim( l.setting:name ) }">
+	<MvASSIGN NAME = "l.setting:value"	VALUE = "{ trim( l.setting:value ) }">
+
+	<MvIF EXPR = "{ NOT Setting_Allowed( l.setting:name ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'setting_name', l.setting:name $ ' is not a valid setting name.' ) }">
+	</MvIF>
+	
+	<MvFUNCTIONRETURN VALUE = "{ Setting_Update_Lowlevel( l.setting ) }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Setting_Update_Lowlevel" PARAMETERS = "setting var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'UPDATE ' $ g.Store_Table_Prefix $ 'TGSL_Settings
+						  SET
+							value	= ?
+						  WHERE
+							name		= ?' }"
+			 FIELDS	= "l.setting:value, l.setting:name">
+	<MvIF EXPR = "{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0025', 'Could not update Setting.' ) }">
+	</MvIF>
+	
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Setting_Load_Name" PARAMETERS = "name, setting var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.name" VALUE = "{ trim( l.name ) }">
+
+	<MvIF EXPR = "{ NOT Setting_Allowed( l.setting:name ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0026', 'Could not load Setting.' ) }">
+	</MvIF>
+
+	<MvOPENVIEW NAME	= "Merchant"
+				VIEW	= "TGSL_Settings"
+				QUERY	= "{ 'SELECT * FROM ' $ g.Store_Table_Prefix $ 'TGSL_Settings WHERE name = ?' }"
+				FIELDS	= "l.name">
+	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0027', 'Could not load Setting.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ TGSL_Settings.d.EOF }">
+		<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_Settings">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_DB ].Error_Load_EOF( 'TGSL_Locations-LOCATION-0028' ) }">
+	</MvIF>
+
+	<MvEVAL EXPR = "{ Setting_Read( l.setting ) }">
+	<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_Settings">
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Settings_Load_All" PARAMETERS = "settings var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
+	<MvOPENVIEW	NAME	= "Merchant"
+				VIEW	= "TGSL_Settings"
+				QUERY	= "{ 'SELECT * FROM ' $ g.Store_Table_Prefix $ 'TGSL_Settings' }">
+
+	<MvIF EXPR = "{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0029:', 'Could not load Settings.' ) }">
+	</MvIF>
+
+	<MvWHILE EXPR = "{ NOT TGSL_Settings.d.EOF }">
+		<MvEVAL EXPR = "{ Setting_Read( l.setting ) }">
+		<MvASSIGN NAME = "l.settings" MEMBER = "{ l.setting:name }" VALUE = "{ l.setting:value }">
+		<MvSKIP NAME = "Merchant" VIEW = "TGSL_Settings" ROWS = 1>
+	</MvWHILE>
+
+	<MvCLOSEVIEW NAME = "Merchant" VIEW = "TGSL_Settings">
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Settings_Update" STANDARDOUTPUTLEVEL = "">
+</MvFUNCTION>
 
 <MvFUNCTION NAME = "Generate_Location_Code" STANDARDOUTPUTLEVEL = "">
 	<MvASSIGN NAME = "l.code" VALUE = "{ [ g.Module_Library_Utilities ].AlphaNumericOnly( crypto_base64_encode( crypto_rand_bytes( 7 ) ) ) }">

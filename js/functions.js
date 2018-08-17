@@ -26,3 +26,12 @@ function StoreLocator_Batchlist_Function( function_name, fieldlist, callback, de
 									   fieldlist,
 									   delegator );
 }
+function StoreLocator_Settings_Update( fields, callback, delegator ) {
+	return AJAX_Call_Module_FieldList( callback,
+									   'admin',
+									   'TGStoreLocator',
+									   'StoreLocator_Settings_Update',
+									   '',
+									   fields,
+									   delegator );
+}
