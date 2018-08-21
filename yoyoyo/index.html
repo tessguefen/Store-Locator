@@ -4,6 +4,7 @@
 	<mvt:exit />
 </mvt:if>
 <mvt:item name="html_profile" />
+<mvt:item name="tgsl" param="Load_Settings( l.settings:store_locator_settings )" />
 <head>
 	<mvt:if expr="NOT ISNULL l.settings:page:title">
 		<title>&mvt:page:title;</title>
@@ -26,7 +27,9 @@
 		<div id="navigation-bar"><mvt:item name="navbar" /></div>
 		<table id="content-container">
 			<tr>
-				<td id="left-navigation"><mvt:item name="category_tree" /></td>
+				<td id="left-navigation">
+					<div id="location_labels"></div>
+				</td>
 				<td id="main-content">
 					<div id="page-header"><mvt:item name="hdft" param="header" /></div>
 					<div id="breadcrumbs"><mvt:item name="breadcrumbs" /></div>
@@ -36,10 +39,13 @@
 						<input type="text" id="addressInput" size="15"/>
 						<label for="radiusSelect">Radius:</label>
 						<select id="radiusSelect" label="Radius">
-							<option value="50" selected>50 Miles</option>
-							<option value="30">30 Miles</option>
-							<option value="20">20 Miles</option>
-							<option value="10">10 Miles</option>
+							<mvt:foreach iterator="radius" array="store_locator_settings:searchRadii">
+								<mvt:if expr="l.settings:radius EQ l.settings:store_locator_settings:DefaultSearchRadius">
+									<option value="&mvte:radius;" selected>&mvte:radius; Miles</option>
+								<mvt:else>
+									<option value="&mvte:radius;">&mvte:radius; Miles</option>
+								</mvt:if>
+							</mvt:foreach>
 						</select>
 
 						<input type="button" id="searchButton" value="Search"/>
@@ -52,7 +58,7 @@
 
 						function initMap() {
 							map = new google.maps.Map(document.getElementById('map'), {
-								center: {lat: 32.8242404, lng: -117.389167},
+								center: {lat: &mvt:store_locator_settings:MapCenterLat;, lng: &mvt:store_locator_settings:MapCenterLng;},
 								zoom: 11,
 								mapTypeId: 'roadmap',
 								mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU}
@@ -78,6 +84,8 @@
 
 						function clearLocations() {
 							infoWindow.close();
+							var leftSideBar = document.getElementById('location_labels');
+							leftSideBar.innerHTML = '';
 							for (var i = 0; i < markers.length; i++) {
 								markers[i].setMap(null);
 							}
@@ -88,6 +96,7 @@
 							clearLocations();
 
 							var radius = document.getElementById('radiusSelect').value;
+							var leftSideBar = document.getElementById('location_labels');
 							var searchUrl = '&mvtj:urls:_self:auto;';
 							var params = 'Action=Search_Locations&Lat=' + encodeURIComponent( lat ) + '&Lng=' + encodeURIComponent( lng ) + '&Radius=' + encodeURIComponent( radius );
 							sendRequest(searchUrl, params, function(data) {
@@ -102,11 +111,25 @@
 										parseFloat(locations[i].lat),
 										parseFloat(locations[i].lng)
 									);
-									createMarker(latlng, name, address, distance);
+									locations[i]._id = i;
+									locations[i].marker = createMarker(latlng, name, address, distance);
 									bounds.extend(latlng);
+									addLocationSidebar( leftSideBar, locations[i] );
 								}
-								map.fitBounds(bounds);
+								if ( bounds ) {
+									map.fitBounds(bounds);
+								}
 							});
+						}
+
+						function addLocationSidebar( sidebar, location ) {
+							console.log( location );
+							var html = '';
+							html += '<div class="location" onclick="google.maps.event.trigger( markers[' + location._id + '], \'click\');">';
+							html += location.name + '<hr />';
+							html += '</div>';
+
+							sidebar.innerHTML += html;
 						}
 
 						function createMarker(latlng, name, address, distance) {
@@ -122,6 +145,7 @@
 								infoWindow.open(map, marker);
 							});
 							markers.push(marker);
+							return marker;
 						}
 
 						function sendRequest(url, params, callback) {
