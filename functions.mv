@@ -85,6 +85,9 @@
 		LocationSearch_Read( location var )
 		Search_Locations( lat, lng, radius, return var )
 
+	Component Functions
+		Component_Load_Settings( settings var )
+
 </MvCOMMENT>
 
 <MvFUNCTION NAME = "Allowed_Settings" STANDARDOUTPUTLEVEL = "">
@@ -1094,4 +1097,18 @@
 	<MvASSIGN NAME = "l.return:radius"	VALUE = "{ l.radius }">
 
 	<MvFUNCTIONRETURN VALUE = "{ l.return:locations_count }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "Component_Load_Settings" PARAMETERS = "module var, param, settings var, output var" STANDARDOUTPUTLEVEL = "">
+	<MvIF EXPR = "{ NOT Settings_Load_All( l.output ) }">
+		<MvFUNCTIONRETURN VALUE = 0>
+	</MvIF>
+
+	<MvASSIGN NAME = "l.void" VALUE = "{ miva_splitstring( l.output:MapCenterLatLng, ',', l.map_centers, 'trim' ) }">
+	<MvASSIGN NAME = "l.output" MEMBER = "MapCenterLat" VALUE = "{ l.map_centers[1] }">
+	<MvASSIGN NAME = "l.output" MEMBER = "MapCenterLng" VALUE = "{ l.map_centers[2] }">
+		
+	<MvASSIGN NAME = "l.void" VALUE = "{ miva_splitstring( l.output:SearchRadiusOptions, ',', l.output:SearchRadii, 'trim' ) }">
+
+	<MvFUNCTIONRETURN VALUE = 1>
 </MvFUNCTION>
