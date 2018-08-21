@@ -211,6 +211,17 @@
 	<MvEVAL EXPR = "{ [ g.Module_Admin ].Element_MMBatchList_JavaScript() }">
 	<MvEVAL EXPR = "{ [ g.Module_Admin ].Element_MMBatchList_CSS() }">
 	<MvEVAL EXPR = "{ [ g.Module_Admin ].Element_Modal_CSS() }">
+	<style>
+		#TGSL_Settings_Wrapper {font-family: 'MuseoSans', Arial, Helvetica, sans-serif;}
+		#TGSL_Settings_Wrapper th, #TGSL_Settings_Wrapper td {padding: 8px;}
+		.TGSL_Settings_dialog_field {padding-top: 4px;}
+		#TGSL_Settings_Wrapper th {background: #f3f3f3;}
+		.tgsl_error .mm_dialog_prompt_required {color: #ff6b59;}
+		.tgsl_error input, .tgsl_error textarea, .tgsl_error select {border-color: #ff6b59;}
+		.tgsl_settings_errors {background-color: #ff6b59;border-color: #ff6b59;color: #fff;padding: 5px 10px;font-weight: bold;margin: 10px 0;}
+		.TGSL_Settings_dialog_field input, .TGSL_Settings_dialog_field textarea, .TGSL_Settings_dialog_field select {display: block;width: 100%;border: 1px solid #d9d9d9;padding: 5px 10px;box-sizing: border-box;}
+		<MvCOMMENT>.tgsl_hr { border: 0;border-top: 1px solid #d9d9d9;padding-top: 1px;}</MvCOMMENT>
+	</style>
 	<MvEVAL EXPR = "{ [ g.Module_Admin ].Element_Modal_JavaScript() }">
 	<script language="JavaScript" src="{ g.clientside_url $ 'Module_Code=' $ encodeattribute( l.module:code ) $ '&Filename=StoreLocator.js' }"></script>
 	<script language="JavaScript">MMScreen_LoadFinished( function() { new StoreLocator_Batchlist(); } );</script>
@@ -231,66 +242,74 @@
 
 	<!-- TGSL_Settings MM Dialog -->
 	<div id="TGSL_Settings" class="mm_dialog">
+		<MvASSIGN NAME = "l.void" VALUE = "{ Settings_Load_All( l.tgsl_settings ) }">
 		<div id="TGSL_Settings_dialog_title" class="mm_dialog_title">Settings</div>
 		<div class="mm_clear"></div>
+		<div id="TGSL_Settings_Errors" class="tgsl_settings_errors" style="display: none;"></div>
 		<table id="TGSL_Settings_Wrapper">
 			<tbody>
 				<tr>
 					<th colspan="2" align="left">UI Settings</th>
 				</tr>
 				<tr>
-					<td class="mm_dialog_prompt_required">Default Search Radius:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:DefaultSearchRadius" id="TGSL_Settings:DefaultSearchRadius" />
+					<td valign="top" class="mm_dialog_prompt_required">Default Search Radius:</td>
+					<td valign="top" class="TGSL_Settings_dialog_field">
+						<input type="text" name="TGSL_Settings:DefaultSearchRadius" id="TGSL_Settings:DefaultSearchRadius" value="{ encodeentities( l.tgsl_settings:DefaultSearchRadius ) }" />
 					</td>
 				</tr>
 				<tr>
-					<td class="mm_dialog_prompt_required">Search Radius Options:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<textarea name="TGSL_Settings:SearchRadiusOptions" id="TGSL_Settings:SearchRadiusOptions"></textarea>
+					<td valign="top" class="mm_dialog_prompt_required">Search Radius Options:</td>
+					<td valign="top" class="TGSL_Settings_dialog_field">
+						<textarea name="TGSL_Settings:SearchRadiusOptions" id="TGSL_Settings:SearchRadiusOptions">
+							<MvEVAL EXPR = "{ encodeentities( l.tgsl_settings:SearchRadiusOptions ) }">
+						</textarea>
 					</td>
 				</tr>
 				<tr>
-					<td class="mm_dialog_prompt_required">Map Center Latitude/ Longitude:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<input name="TGSL_Settings:MapCenterLatLng" id="TGSL_Settings:MapCenterLatLng" />
+					<td valign="top" class="mm_dialog_prompt_required">Map Center Lat/ Lng:</td>
+					<td valign="top" class="TGSL_Settings_dialog_field">
+						<input name="TGSL_Settings:MapCenterLatLng" id="TGSL_Settings:MapCenterLatLng" value="{ encodeentities( l.tgsl_settings:MapCenterLatLng ) }" />
 						<br /><em>Example: 32.8242404, -117.389167</em>
 					</td>
 				</tr>
+				<MvCOMMENT>
 				<tr>
-					<td colspan="2"><hr /></td>
+					<td valign="top" colspan="2"><hr class="tgsl_hr" /></td>
 				</tr>
+				</MvCOMMENT>
 				<tr>
 					<th colspan="2" align="left">Google Geocoding</th>
 				</tr>
 				<tr>
-					<td class="mm_dialog_prompt_required">API Key:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:Geocode_ApiKey" id="TGSL_Settings:Geocode_ApiKey" />
+					<td valign="top" class="mm_dialog_prompt_required">API Key:</td>
+					<td valign="top" class="TGSL_Settings_dialog_field">
+						<input type="text" name="TGSL_Settings:Geocode_ApiKey" id="TGSL_Settings:Geocode_ApiKey" value="{ encodeentities( l.tgsl_settings:Geocode_ApiKey ) }" />
 					</td>
 				</tr>
 				<tr>
-					<td class="mm_dialog_prompt_required">API Url:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:Geocode_Url" id="TGSL_Settings:Geocode_Url" />
+					<td valign="top" class="mm_dialog_prompt_required">API Url:</td>
+					<td valign="top" class="TGSL_Settings_dialog_field">
+						<input type="text" name="TGSL_Settings:Geocode_Url" id="TGSL_Settings:Geocode_Url" value="{ encodeentities( l.tgsl_settings:Geocode_Url ) }" />
 					</td>
 				</tr>
+				<MvCOMMENT>
 				<tr>
-					<td colspan="2"><hr /></td>
+					<td valign="top" colspan="2"><hr class="tgsl_hr" /></td>
 				</tr>
+				</MvCOMMENT>
 				<tr>
 					<th colspan="2" align="left">Google Maps</th>
 				</tr>
 				<tr>
-					<td class="mm_dialog_prompt_required">API Key:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:Maps_Apikey" id="TGSL_Settings:Maps_Apikey" />
+					<td valign="top" class="mm_dialog_prompt_required">API Key:</td>
+					<td valign="top" class="TGSL_Settings_dialog_field">
+						<input type="text" name="TGSL_Settings:Maps_Apikey" id="TGSL_Settings:Maps_Apikey" value="{ encodeentities( l.tgsl_settings:Maps_Apikey ) }" />
 					</td>
 				</tr>
 				<tr>
-					<td class="mm_dialog_prompt_required">API Url:</td>
-					<td class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:Maps_Url" id="TGSL_Settings:Maps_Url" />
+					<td valign="top" class="mm_dialog_prompt_required">API Url:</td>
+					<td valign="top" class="TGSL_Settings_dialog_field">
+						<input type="text" name="TGSL_Settings:Maps_Url" id="TGSL_Settings:Maps_Url" value="{ encodeentities( l.tgsl_settings:Maps_Url ) }" />
 					</td>
 				</tr>
 			</tbody>
@@ -357,6 +376,7 @@
 	<MvIF EXPR = "{ g.Module_Function EQ 'AdditionalField_Insert'		}"><MvFUNCTIONRETURN VALUE = "{ JSON_AdditionalField_Insert( l.module ) }"></MvIF>
 	<MvIF EXPR = "{ g.Module_Function EQ 'AdditionalField_Update'		}"><MvFUNCTIONRETURN VALUE = "{ JSON_AdditionalField_Update( l.module ) }"></MvIF>
 	<MvIF EXPR = "{ g.Module_Function EQ 'AdditionalField_Delete'		}"><MvFUNCTIONRETURN VALUE = "{ JSON_AdditionalField_Delete( l.module ) }"></MvIF>
+	<MvIF EXPR = "{ g.Module_Function EQ 'StoreLocator_Settings_Update'	}"><MvFUNCTIONRETURN VALUE = "{ JSON_Settings_Update( l.module ) }"></MvIF>
 </MvFUNCTION>
 
 <MvCOMMENT>

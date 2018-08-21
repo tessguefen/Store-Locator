@@ -144,11 +144,41 @@ StoreLocatorSettingsDialog.prototype.Cancel = function(){
 StoreLocatorSettingsDialog.prototype.Save = function(){
 	var self = this;
 	var data = self.SerializeInputs( self.wrapper.getElementsByTagName( '*' ) );
-	console.log( data );
 	StoreLocator_Settings_Update( data, function( response ) { self.Save_Callback( response ); } );
 }
 StoreLocatorSettingsDialog.prototype.Save_Callback = function( response ) {
-	console.log( response );
+	var self = this;
+
+	var error_classes = self.wrapper.getElementsByClassName( 'tgsl_error' );
+	for (var i = 0; i < error_classes.length; i++) {
+	   error_classes[i].classList.remove('tgsl_error');
+	}
+
+	var errorWrapper = document.getElementById( 'TGSL_Settings_Errors' );
+	if ( errorWrapper ) {
+		errorWrapper.style.display = 'none';
+		errorWrapper.textContent = '';
+	}
+
+	if ( response.success === 1 ) {
+		self.Hide();
+	} else {
+		if ( response.error_field ) {
+			var errorField = document.getElementById( 'TGSL_Settings:' + response.error_field );
+			if ( errorField ) {
+				var parent = errorField.parentElement.parentElement;
+				if ( parent ) {
+					parent.classList.add( 'tgsl_error' );
+				}
+			}
+		}
+		if ( response.error_message ) {
+			if ( errorWrapper ) {
+				errorWrapper.textContent = response.error_message;
+				errorWrapper.style.display = 'block';
+			}
+		}
+	}
 }
 
 StoreLocatorSettingsDialog.prototype.SerializeInputs = function( inputs ) {
