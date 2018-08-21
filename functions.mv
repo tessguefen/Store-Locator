@@ -82,12 +82,13 @@
 		JSON_Settings_Update( module var )
 
 	Front-end Functions
+		LocationSearch_Read( location var )
 		Search_Locations( lat, lng, radius, return var )
 
 </MvCOMMENT>
 
 <MvFUNCTION NAME = "Allowed_Settings" STANDARDOUTPUTLEVEL = "">
-	<MvFUNCTIONRETURN VALUE = "DefaultSearchRadius,SearchRadiusOptions,MapCenterLatLng,Geocode_ApiKey,Geocode_Url,Maps_Apikey,Maps_Url">
+	<MvFUNCTIONRETURN VALUE = "DefaultSearchRadius,SearchRadiusOptions,MapCenterLatLng,Geocode_Url,Maps_Apikey,Maps_Url">
 </MvFUNCTION>
 
 <MvFUNCTION NAME = "Setting_Allowed" PARAMETERS = "setting_name" STANDARDOUTPUTLEVEL = "">
@@ -129,7 +130,7 @@
 <MvFUNCTION NAME = "Setting_Load_Name" PARAMETERS = "name, setting var" STANDARDOUTPUTLEVEL = "" ERROROUTPUTLEVEL = "">
 	<MvASSIGN NAME = "l.name" VALUE = "{ trim( l.name ) }">
 
-	<MvIF EXPR = "{ NOT Setting_Allowed( l.setting:name ) }">
+	<MvIF EXPR = "{ NOT Setting_Allowed( l.name ) }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'TGSL_Locations-LOCATION-0026', 'Could not load Setting.' ) }">
 	</MvIF>
 
@@ -176,7 +177,6 @@
 	<MvASSIGN NAME = "l.settings:DefaultSearchRadius"	VALUE = "{ trim( l.settings:DefaultSearchRadius ) }">
 	<MvASSIGN NAME = "l.settings:SearchRadiusOptions"	VALUE = "{ trim( l.settings:SearchRadiusOptions ) }">
 	<MvASSIGN NAME = "l.settings:MapCenterLatLng"		VALUE = "{ trim( l.settings:MapCenterLatLng ) }">
-	<MvASSIGN NAME = "l.settings:Geocode_ApiKey"			VALUE = "{ trim( l.settings:Geocode_ApiKey ) }">
 	<MvASSIGN NAME = "l.settings:Geocode_Url"			VALUE = "{ trim( l.settings:Geocode_Url ) }">
 	<MvASSIGN NAME = "l.settings:Maps_Apikey"			VALUE = "{ trim( l.settings:Maps_Apikey ) }">
 	<MvASSIGN NAME = "l.settings:Maps_Url"				VALUE = "{ trim( l.settings:Maps_Url ) }">
@@ -235,10 +235,6 @@
 		<MvASSIGN NAME = "l.settings:MapCenterLatLng" VALUE = "{ l.settings:MapCenterLatLng $ l.option }">
 	</MvFOREACH>
 
-	<MvIF EXPR = "{ ISNULL l.settings:Geocode_ApiKey }">
-		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'Geocode_ApiKey', 'Geocode API Key is required.' ) }">
-	</MvIF>
-
 	<MvIF EXPR = "{ ISNULL l.settings:Geocode_Url }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'Geocode_Url', 'Geocode URL is required.' ) }">
 	</MvIF>
@@ -258,8 +254,6 @@
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ l.count }" 	MEMBER = "value"	VALUE = "{ l.settings:SearchRadiusOptions }">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ ++l.count }"	MEMBER = "name"		VALUE = "MapCenterLatLng">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ l.count }" 	MEMBER = "value"	VALUE = "{ l.settings:MapCenterLatLng }">
-	<MvASSIGN NAME = "l.setting_array" INDEX = "{ ++l.count }"	MEMBER = "name"		VALUE = "Geocode_ApiKey">
-	<MvASSIGN NAME = "l.setting_array" INDEX = "{ l.count }" 	MEMBER = "value"	VALUE = "{ l.settings:Geocode_ApiKey }">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ ++l.count }"	MEMBER = "name"		VALUE = "Geocode_Url">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ l.count }" 	MEMBER = "value"	VALUE = "{ l.settings:Geocode_Url }">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ ++l.count }"	MEMBER = "name"		VALUE = "Maps_Apikey">
@@ -288,6 +282,38 @@
 	<MvCOMMENT>
 		Ping Google
 	</MvCOMMENT>
+	<MvIF EXPR = "{ NOT Setting_Load_Name( 'Geocode_Url', l.Geocode_Url ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'setting', 'Could not load `Geocode_Url`.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.Geocode_Url:value }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'Geocode_Url', '`Geocode_Url` is empty.' ) }">
+	</MvIF>
+
+	<MvASSIGN NAME = "l.sensor"		VALUE = "false" />
+	<MvASSIGN NAME = "l.address"	VALUE = "{ l.location:addr1 $ ' ' $ l.location:addr2 $ ', ' $ l.location:city $ ', ' $ l.location:state $ ' ' $ l.location:zip $ ', ' $ l.location:cntry }">
+
+	<MvCALL METHOD = "GET"
+			ACTION = "{ l.Geocode_Url:value }"
+			FIELDS = "l.sensor, l.address">
+			<MvASSIGN NAME = "l.google_response" VALUE = "{ l.google_response $ s.callvalue }">
+	</MvCALL>
+
+	<MvIF EXPR = "{ NOT miva_json_decode( l.google_response, l.response ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'response', 'Error Parsing JSON response.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ l.response:status NE 'OK' }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'response', 'Geocoding did not return an OK status. Status: (' $ l.response:status $ ').' ) }">
+	</MvIF>
+
+	<MvCOMMENT>
+		Only going to pull the First Lat/Lng (Google will normally only respond with 1 anyways)
+	</MvCOMMENT>
+
+	<MvASSIGN NAME = "l.location" MEMBER = "lat" VALUE = "{ l.response:results[1]:geometry:location:lat }">
+	<MvASSIGN NAME = "l.location" MEMBER = "lng" VALUE = "{ l.response:results[1]:geometry:location:lng }">
+
 	<MvFUNCTIONRETURN VALUE = 1>
 </MvFUNCTION>
 

@@ -45,8 +45,7 @@
 								( \'DefaultSearchRadius\', \'50\' ),
 								( \'SearchRadiusOptions\', \'10,20,50,100\' ),
 								( \'MapCenterLatLng\', \'39.8283,-98.5795\' ),
-								( \'Geocode_ApiKey\', \'\' ),
-								( \'Geocode_Url\', \'https://maps.googleapis.com/maps/api/geocode/json\' ),
+								( \'Geocode_Url\', \'https://maps.google.com/maps/api/geocode/json\' ),
 								( \'Maps_Apikey\', \'\' ),
 								( \'Maps_Url\', \'https://maps.googleapis.com/maps/api/js\' )' }">
 	<MvIF EXPR = "{ g.MvQUERY_Error }">
@@ -279,12 +278,6 @@
 				</MvCOMMENT>
 				<tr>
 					<th colspan="2" align="left">Google Geocoding</th>
-				</tr>
-				<tr>
-					<td valign="top" class="mm_dialog_prompt_required">API Key:</td>
-					<td valign="top" class="TGSL_Settings_dialog_field">
-						<input type="text" name="TGSL_Settings:Geocode_ApiKey" id="TGSL_Settings:Geocode_ApiKey" value="{ encodeentities( l.tgsl_settings:Geocode_ApiKey ) }" />
-					</td>
 				</tr>
 				<tr>
 					<td valign="top" class="mm_dialog_prompt_required">API Url:</td>
