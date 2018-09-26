@@ -91,7 +91,7 @@
 </MvCOMMENT>
 
 <MvFUNCTION NAME = "Allowed_Settings" STANDARDOUTPUTLEVEL = "">
-	<MvFUNCTIONRETURN VALUE = "DefaultSearchRadius,SearchRadiusOptions,MapCenterLatLng,Geocode_Url,Maps_Apikey,Maps_Url">
+	<MvFUNCTIONRETURN VALUE = "DefaultSearchRadius,SearchRadiusOptions,MapCenterLatLng,Geocode_Apikey,Geocode_Url,Maps_Apikey,Maps_Url">
 </MvFUNCTION>
 
 <MvFUNCTION NAME = "Setting_Allowed" PARAMETERS = "setting_name" STANDARDOUTPUTLEVEL = "">
@@ -180,6 +180,7 @@
 	<MvASSIGN NAME = "l.settings:DefaultSearchRadius"	VALUE = "{ trim( l.settings:DefaultSearchRadius ) }">
 	<MvASSIGN NAME = "l.settings:SearchRadiusOptions"	VALUE = "{ trim( l.settings:SearchRadiusOptions ) }">
 	<MvASSIGN NAME = "l.settings:MapCenterLatLng"		VALUE = "{ trim( l.settings:MapCenterLatLng ) }">
+	<MvASSIGN NAME = "l.settings:GeocodeApikey"			VALUE = "{ trim( l.settings:GeocodeApikey ) }">
 	<MvASSIGN NAME = "l.settings:Geocode_Url"			VALUE = "{ trim( l.settings:Geocode_Url ) }">
 	<MvASSIGN NAME = "l.settings:Maps_Apikey"			VALUE = "{ trim( l.settings:Maps_Apikey ) }">
 	<MvASSIGN NAME = "l.settings:Maps_Url"				VALUE = "{ trim( l.settings:Maps_Url ) }">
@@ -237,6 +238,10 @@
 		</MvIF>
 		<MvASSIGN NAME = "l.settings:MapCenterLatLng" VALUE = "{ l.settings:MapCenterLatLng $ l.option }">
 	</MvFOREACH>
+	
+	<MvIF EXPR = "{ ISNULL l.settings:Geocode_ApiKey }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'Geocode_ApiKey', 'Geocode API Key URL is required.' ) }">
+	</MvIF>
 
 	<MvIF EXPR = "{ ISNULL l.settings:Geocode_Url }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'Geocode_Url', 'Geocode URL is required.' ) }">
@@ -257,6 +262,8 @@
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ l.count }" 	MEMBER = "value"	VALUE = "{ l.settings:SearchRadiusOptions }">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ ++l.count }"	MEMBER = "name"		VALUE = "MapCenterLatLng">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ l.count }" 	MEMBER = "value"	VALUE = "{ l.settings:MapCenterLatLng }">
+	<MvASSIGN NAME = "l.setting_array" INDEX = "{ ++l.count }"	MEMBER = "name"		VALUE = "Geocode_Apikey">
+	<MvASSIGN NAME = "l.setting_array" INDEX = "{ l.count }" 	MEMBER = "value"	VALUE = "{ l.settings:Geocode_Apikey }">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ ++l.count }"	MEMBER = "name"		VALUE = "Geocode_Url">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ l.count }" 	MEMBER = "value"	VALUE = "{ l.settings:Geocode_Url }">
 	<MvASSIGN NAME = "l.setting_array" INDEX = "{ ++l.count }"	MEMBER = "name"		VALUE = "Maps_Apikey">
@@ -285,20 +292,28 @@
 	<MvCOMMENT>
 		Ping Google
 	</MvCOMMENT>
+	<MvIF EXPR = "{ NOT Setting_Load_Name( 'Geocode_Apikey', l.Geocode_Apikey ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'Geocode_Apikey', 'Could not load `Geocode_Apikey`.' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ ISNULL l.Geocode_Apikey:value }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'Geocode_Apikey', '`Geocode_Apikey` is empty.' ) }">
+	</MvIF>
+
 	<MvIF EXPR = "{ NOT Setting_Load_Name( 'Geocode_Url', l.Geocode_Url ) }">
-		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'setting', 'Could not load `Geocode_Url`.' ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'Geocode_Url', 'Could not load `Geocode_Url`.' ) }">
 	</MvIF>
 
 	<MvIF EXPR = "{ ISNULL l.Geocode_Url:value }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_Utilities ].Error( 'Geocode_Url', '`Geocode_Url` is empty.' ) }">
 	</MvIF>
 
-	<MvASSIGN NAME = "l.sensor"		VALUE = "false" />
+	<MvASSIGN NAME = "l.key"		VALUE = "{ l.Geocode_Apikey:value }" />
 	<MvASSIGN NAME = "l.address"	VALUE = "{ l.location:addr1 $ ' ' $ l.location:addr2 $ ', ' $ l.location:city $ ', ' $ l.location:state $ ' ' $ l.location:zip $ ', ' $ l.location:cntry }">
 
 	<MvCALL METHOD = "GET"
 			ACTION = "{ l.Geocode_Url:value }"
-			FIELDS = "l.sensor, l.address">
+			FIELDS = "l.key, l.address">
 			<MvASSIGN NAME = "l.google_response" VALUE = "{ l.google_response $ s.callvalue }">
 	</MvCALL>
 
